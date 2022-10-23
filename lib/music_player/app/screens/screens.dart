@@ -1,0 +1,12 @@
+export './about/about.dart';
+export './favorite/favorite.dart';
+export './home/home.dart';
+export './home/search.dart';
+export './music/music.dart';
+export './playlist/playlist.dart';
+export './playlist/create_edit_playlist.dart';
+export './playlist/playlist_song.dart';
+export './settings/settings.dart';
+export './splash/splash.dart';
+export './player/player.dart';
+export './player/queue.dart';
