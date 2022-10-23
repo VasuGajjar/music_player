@@ -23,6 +23,9 @@
 - Hive
 - Just Audio
 
+## 💙 Contribute :
+Improvements, Bug Fixes and New Features are warmly welcomed! 🤩
+
 ### Also checkout my other projects:
 
 - [Growth Pad](https://github.com/VasuGajjar/growth_pad)
