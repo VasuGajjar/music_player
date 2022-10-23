@@ -2,12 +2,10 @@
 
 # Music Player
 
-- Beautiful Design
-- Simple to Use
-- Wanna try? -> [Download from here](https://github.com/VasuGajjar/music_player/raw/master/demo/music.apk)
+### A Simple and Beautiful Music Player written in Flutter
+##### Wanna try? -> [Download from here](https://github.com/VasuGajjar/music_player/raw/master/demo/music.apk)
 
-
-### Screenshots
+## 📸 Screenshots :
 
 <p>
 <img src="/demo/ss1.png" height="390"/> &#160;
@@ -15,6 +13,15 @@
 <img src="/demo/ss3.png" height="390"/> &#160;
 </p>
 
+## ✨ Features :
+- ### ⚡ Fast & Light
+- ### 😎 Clean & Spam Free
+- ### 😍 Beautiful UI
+
+## 💫 Uses :
+- Bloc & Hydrated Bloc
+- Hive
+- Just Audio
 
 ### Also checkout my other projects:
 
