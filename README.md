@@ -1,16 +1,24 @@
-# music_player
+<img src="/demo/logo.png" width="60"/>
 
-A new music player
+# Music Player
 
-## Getting Started
+- Beautiful Design
+- Simple to Use
+- Wanna try? -> [Download from here]()
 
-This project is a starting point for a Flutter application.
 
-A few resources to get you started if this is your first Flutter project:
+### Screenshots
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+<p>
+<img src="/demo/ss1.png" height="390"/> &#160;
+<img src="/demo/ss2.png" height="390"/> &#160;
+<img src="/demo/ss3.png" height="390"/> &#160;
+</p>
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+### Also checkout my other projects:
+
+- [Growth Pad](https://github.com/VasuGajjar/growth_pad)
+- [Image Search App](https://github.com/VasuGajjar/ImageSearchApp)
+- [Covid19 Tracker](https://github.com/VasuGajjar/Covid19Tracker)
+- [Flash Chat](https://github.com/VasuGajjar/Flashchat)
