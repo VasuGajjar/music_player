@@ -4,7 +4,7 @@
 
 - Beautiful Design
 - Simple to Use
-- Wanna try? -> [Download from here]()
+- Wanna try? -> [Download from here](https://github.com/VasuGajjar/music_player/raw/master/demo/music.apk)
 
 
 ### Screenshots
