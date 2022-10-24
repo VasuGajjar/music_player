@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <solid android:color="#464E6B" />
+            <corners android:radius="10dp" />
+        </shape>
+    </item>
+    <item
+        android:bottom="4dp"
+        android:drawable="@drawable/ic_music"
+        android:end="4dp"
+        android:start="4dp"
+        android:top="4dp" />
+</layer-list>

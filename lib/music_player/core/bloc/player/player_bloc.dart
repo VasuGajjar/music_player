@@ -1,6 +1,9 @@
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
+import 'package:home_widget/home_widget.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -17,6 +20,15 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
 
   PlayerBloc() : super(MusicPlayerState.initial()) {
     _songIndexStream = _audioPlayer.currentIndexStream.listen((index) {
+      HomeWidget.saveWidgetData('title', state.songs[index ?? 0].title);
+      HomeWidget.saveWidgetData('artist', state.songs[index ?? 0].artist);
+      HomeWidget.saveWidgetData('image', state.songs[index ?? 0].albumArtUrl);
+      HomeWidget.updateWidget(
+        name: 'HomeWidgetPlayerProvider',
+        androidName: 'HomeWidgetPlayerProvider',
+        qualifiedAndroidName: 'com.vasugajjar.music_player.HomeWidgetPlayerProvider',
+      );
+
       emit(state.copyWith(currentIndex: index));
     });
 
@@ -63,6 +75,7 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
           await _audioPlayer.seek(Duration.zero, index: event.currentIndex);
         }
       }
+
       emit(state.copyWith(currentIndex: event.currentIndex, songs: List.from(event.songs)));
     });
 
@@ -75,7 +88,6 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
         }
       }
     });
-
   }
 
   int get songDuration => _audioPlayer.duration?.inSeconds ?? 0;
@@ -98,6 +110,7 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
   @override
   Future<void> close() {
     _songIndexStream.cancel();
+    _playPauseStream.cancel();
     _audioPlayer.dispose();
     return super.close();
   }
