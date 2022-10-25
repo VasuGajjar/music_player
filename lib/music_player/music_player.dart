@@ -18,7 +18,7 @@ class MusicPlayerApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => MusicCubit()..getSongs()),
         BlocProvider(create: (context) => PlaylistCubit()),
-        BlocProvider(create: (context) => PlayerBloc()),
+        BlocProvider(create: (context) => PlayerBloc()..registerHomeWidgetCallback()),
       ],
       child: MaterialApp(
         title: 'Music Player',

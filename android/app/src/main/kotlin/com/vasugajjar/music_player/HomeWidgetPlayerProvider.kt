@@ -3,15 +3,13 @@ package com.vasugajjar.music_player
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.StrictMode
 import android.widget.RemoteViews
 import com.ryanheise.audioservice.AudioServiceActivity
+import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
-import java.io.File
-import java.io.FileInputStream
 
 class HomeWidgetPlayerProvider : HomeWidgetProvider() {
     override fun onUpdate(
@@ -30,29 +28,56 @@ class HomeWidgetPlayerProvider : HomeWidgetProvider() {
                 )
                 setOnClickPendingIntent(R.id.player_widget_bg, pendingIntent)
 
-                setTextViewText(
-                    R.id.player_widget_song_name,
-                    widgetData.getString("title", "NA")
-                )
+                val playing = widgetData.getString("play", null)
+                if (playing != null) {
+                    if (playing == true.toString()) {
+                        setImageViewResource(R.id.btn_play_pause, R.drawable.ic_pause)
+                    } else {
+                        setImageViewResource(R.id.btn_play_pause, R.drawable.ic_play)
+                    }
+                }
 
-                setTextViewText(
-                    R.id.player_widget_song_artist,
-                    widgetData.getString("artist", "NA")
+                val title = widgetData.getString("title", null)
+                if (title != null) {
+                    setTextViewText(R.id.player_widget_song_name, title)
+                }
+
+                val artist = widgetData.getString("artist", null)
+                if (artist != null) {
+                    setTextViewText(R.id.player_widget_song_artist, artist)
+                }
+
+                val playPauseIntent = HomeWidgetBackgroundIntent.getBroadcast(
+                    context,
+                    Uri.parse("homeWidgetPlayer://playPause")
                 )
+                setOnClickPendingIntent(R.id.btn_play_pause, playPauseIntent)
+
+                val previousIntent = HomeWidgetBackgroundIntent.getBroadcast(
+                    context,
+                    Uri.parse("homeWidgetPlayer://previous")
+                )
+                setOnClickPendingIntent(R.id.btn_previous, previousIntent)
+
+                val nextIntent = HomeWidgetBackgroundIntent.getBroadcast(
+                    context,
+                    Uri.parse("homeWidgetPlayer://next")
+                )
+                setOnClickPendingIntent(R.id.btn_next, nextIntent)
 
 //                try {
-//                val imgPath = widgetData.getString("image", null);
-//                if (imgPath != null) {
-//                    setImageViewUri(
-//                        R.id.player_widget_image,
-//                        Uri.fromFile(File(imgPath))
-//                    )
-//                } else {
-//                    setImageViewResource(
-//                        R.id.player_widget_image,
-//                        R.mipmap.ic_launcher
-//                    )
-//                }
+//                    val imgPath = widgetData.getString("image", null);
+//                    if (imgPath != null) {
+//                        setImageViewUri(
+//                            R.id.player_widget_image,
+//                            Uri.fromFile(File(imgPath))
+//                        )
+//                    } else {
+//                        setImageViewResource(
+//                            R.id.player_widget_image,
+//                            R.mipmap.ic_launcher
+//                        )
+//                    }
 //                } catch (_: Exception) {
 //                    setImageViewResource(
 //                        R.id.player_widget_image,
@@ -63,19 +88,4 @@ class HomeWidgetPlayerProvider : HomeWidgetProvider() {
             appWidgetManager.updateAppWidget(widgetId, views)
         }
     }
-
-    fun getBitmap(filePath: String): Bitmap? {
-        var bitmap: Bitmap? = null
-        try {
-            var f: File = File(filePath)
-            var options = BitmapFactory.Options()
-            options.inPreferredConfig = Bitmap.Config.ARGB_8888
-            bitmap = BitmapFactory.decodeStream(FileInputStream(f), null, options)
-        } catch (e: Exception) {
-
-        }
-        return bitmap
-    }
-
-
 }

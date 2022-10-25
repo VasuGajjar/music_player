@@ -33,6 +33,12 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
     });
 
     _playPauseStream = _audioPlayer.playingStream.listen((playing) {
+      HomeWidget.saveWidgetData('play', playing.toString());
+      HomeWidget.updateWidget(
+        name: 'HomeWidgetPlayerProvider',
+        androidName: 'HomeWidgetPlayerProvider',
+        qualifiedAndroidName: 'com.vasugajjar.music_player.HomeWidgetPlayerProvider',
+      );
       emit(state.copyWith(playing: playing));
     });
 
@@ -139,6 +145,28 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
 
   @override
   Map<String, dynamic>? toJson(MusicPlayerState state) => state.toJson();
+
+  dynamic homeWidgetBackgroundCallback(Uri? uri) {
+    if (state.currentIndex != null) {
+      if (uri != null) {
+        if (uri.toString().contains("playPause")) {
+          add(PlayerPlayPause(!state.playing));
+        } else if (uri.toString().contains("next")) {
+          add(PlayerNextPrevious(true));
+          add(PlayerPlayPause(true));
+        } else if (uri.toString().contains("previous")) {
+          add(PlayerNextPrevious(false));
+          add(PlayerPlayPause(true));
+        }
+      }
+    }
+  }
+
+  void registerHomeWidgetCallback() async {
+    Logger.debug('Registering HomeWidget callback');
+    var res = await HomeWidget.registerBackgroundCallback(homeWidgetBackgroundCallback);
+    Logger.data('HomeWidget callback status: $res');
+  }
 }
 
 extension LoopModeX on LoopMode {
