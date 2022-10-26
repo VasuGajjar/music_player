@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:hive/hive.dart';
 import 'package:json_annotation/json_annotation.dart';
+import 'package:music_player/music_player/music_player.dart';
 
 part 'song.g.dart';
 
@@ -25,6 +26,12 @@ class Song with EquatableMixin, HiveObjectMixin {
   @HiveField(5)
   bool isFavorite;
 
+  @HiveField(6)
+  int dominantColor;
+
+  @HiveField(7)
+  int textColor;
+
   Song({
     required this.title,
     required this.artist,
@@ -32,6 +39,8 @@ class Song with EquatableMixin, HiveObjectMixin {
     this.albumArtUrl,
     required this.filePath,
     required this.isFavorite,
+    required this.dominantColor,
+    required this.textColor,
   });
 
   factory Song.empty() => Song(
@@ -40,6 +49,8 @@ class Song with EquatableMixin, HiveObjectMixin {
         album: '',
         filePath: '',
         isFavorite: false,
+        dominantColor: AppColor.darkBlue.value,
+        textColor: AppColor.offWhite.value,
       );
 
   @override

@@ -4,7 +4,7 @@ import '../../music_player.dart';
 
 class PlayPauseButton extends StatelessWidget {
   final bool state, mini;
-  final Color color;
+  final Color color, iconColor;
   final void Function(bool) onPlayPauseTap;
 
   const PlayPauseButton({
@@ -12,6 +12,7 @@ class PlayPauseButton extends StatelessWidget {
     this.state = true,
     this.mini = true,
     this.color = AppColor.offWhite,
+    this.iconColor = AppColor.darkGray,
     required this.onPlayPauseTap,
   }) : super(key: key);
 
@@ -21,8 +22,8 @@ class PlayPauseButton extends StatelessWidget {
       onPressed: () => onPlayPauseTap(!state),
       mini: mini,
       backgroundColor: color,
-      splashColor: AppColor.darkBlue.withOpacity(0.6),
-      foregroundColor: AppColor.darkGray,
+      splashColor: iconColor.withOpacity(0.6),
+      foregroundColor: iconColor,
       child: AnimatedSwitcher(
         duration: const Duration(milliseconds: 400),
         transitionBuilder: (child, animation) => FadeTransition(

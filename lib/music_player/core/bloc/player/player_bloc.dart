@@ -96,9 +96,9 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
     });
   }
 
-  int get songDuration => _audioPlayer.duration?.inSeconds ?? 0;
+  Stream<Duration?> get songDuration => _audioPlayer.durationStream;
 
-  Stream<int> get position => _audioPlayer.positionStream.map((event) => event.inSeconds);
+  Stream<Duration> get songPosition => _audioPlayer.positionStream;
 
   void setPosition(int position) => _audioPlayer.seek(Duration(seconds: position));
 
@@ -163,9 +163,9 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
   }
 
   void registerHomeWidgetCallback() async {
-    Logger.debug('Registering HomeWidget callback');
-    var res = await HomeWidget.registerBackgroundCallback(homeWidgetBackgroundCallback);
-    Logger.data('HomeWidget callback status: $res');
+    // Logger.debug('Registering HomeWidget callback');
+    // var res = await HomeWidget.registerBackgroundCallback(homeWidgetBackgroundCallback);
+    // Logger.data('HomeWidget callback status: $res');
   }
 }
 

@@ -23,13 +23,15 @@ class SongAdapter extends TypeAdapter<Song> {
       albumArtUrl: fields[3] as String?,
       filePath: fields[4] as String,
       isFavorite: fields[5] as bool,
+      dominantColor: fields[6] as int,
+      textColor: fields[7] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, Song obj) {
     writer
-      ..writeByte(6)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
@@ -41,7 +43,11 @@ class SongAdapter extends TypeAdapter<Song> {
       ..writeByte(4)
       ..write(obj.filePath)
       ..writeByte(5)
-      ..write(obj.isFavorite);
+      ..write(obj.isFavorite)
+      ..writeByte(6)
+      ..write(obj.dominantColor)
+      ..writeByte(7)
+      ..write(obj.textColor);
   }
 
   @override
@@ -66,6 +72,8 @@ Song _$SongFromJson(Map<String, dynamic> json) => Song(
       albumArtUrl: json['albumArtUrl'] as String?,
       filePath: json['filePath'] as String,
       isFavorite: json['isFavorite'] as bool,
+      dominantColor: json['dominantColor'] as int,
+      textColor: json['textColor'] as int,
     );
 
 Map<String, dynamic> _$SongToJson(Song instance) => <String, dynamic>{
@@ -75,4 +83,6 @@ Map<String, dynamic> _$SongToJson(Song instance) => <String, dynamic>{
       'albumArtUrl': instance.albumArtUrl,
       'filePath': instance.filePath,
       'isFavorite': instance.isFavorite,
+      'dominantColor': instance.dominantColor,
+      'textColor': instance.textColor,
     };

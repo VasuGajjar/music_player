@@ -3,11 +3,9 @@ package com.vasugajjar.music_player
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
-import android.net.Uri
 import android.os.StrictMode
 import android.widget.RemoteViews
 import com.ryanheise.audioservice.AudioServiceActivity
-import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import es.antonborri.home_widget.HomeWidgetLaunchIntent
 import es.antonborri.home_widget.HomeWidgetProvider
 
@@ -47,23 +45,23 @@ class HomeWidgetPlayerProvider : HomeWidgetProvider() {
                     setTextViewText(R.id.player_widget_song_artist, artist)
                 }
 
-                val playPauseIntent = HomeWidgetBackgroundIntent.getBroadcast(
-                    context,
-                    Uri.parse("homeWidgetPlayer://playPause")
-                )
-                setOnClickPendingIntent(R.id.btn_play_pause, playPauseIntent)
-
-                val previousIntent = HomeWidgetBackgroundIntent.getBroadcast(
-                    context,
-                    Uri.parse("homeWidgetPlayer://previous")
-                )
-                setOnClickPendingIntent(R.id.btn_previous, previousIntent)
-
-                val nextIntent = HomeWidgetBackgroundIntent.getBroadcast(
-                    context,
-                    Uri.parse("homeWidgetPlayer://next")
-                )
-                setOnClickPendingIntent(R.id.btn_next, nextIntent)
+//                val playPauseIntent = HomeWidgetBackgroundIntent.getBroadcast(
+//                    context,
+//                    Uri.parse("homeWidgetPlayer://playPause")
+//                )
+//                setOnClickPendingIntent(R.id.btn_play_pause, playPauseIntent)
+//
+//                val previousIntent = HomeWidgetBackgroundIntent.getBroadcast(
+//                    context,
+//                    Uri.parse("homeWidgetPlayer://previous")
+//                )
+//                setOnClickPendingIntent(R.id.btn_previous, previousIntent)
+//
+//                val nextIntent = HomeWidgetBackgroundIntent.getBroadcast(
+//                    context,
+//                    Uri.parse("homeWidgetPlayer://next")
+//                )
+//                setOnClickPendingIntent(R.id.btn_next, nextIntent)
 
 //                try {
 //                    val imgPath = widgetData.getString("image", null);

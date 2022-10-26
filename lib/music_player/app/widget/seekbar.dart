@@ -1,48 +1,88 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
-import '../../music_player.dart';
+class SeekBar extends StatefulWidget {
+  final Stream<Duration?> songDuration;
+  final Stream<Duration> songPosition;
+  final Color initialColor;
+  final void Function(int position) onSeek;
 
-class SeekBar extends StatelessWidget {
-  int songDuration, position;
-  final Stream<int> positionStream;
-  bool drag = false;
-  void Function(int) onSeek;
-
-  SeekBar({
+  const SeekBar({
     Key? key,
     required this.songDuration,
-    required this.positionStream,
+    required this.songPosition,
     required this.onSeek,
-    this.position = 0,
+    required this.initialColor,
   }) : super(key: key);
 
   @override
+  State<SeekBar> createState() => SeekBarState();
+}
+
+class SeekBarState extends State<SeekBar> {
+  Duration? songDuration;
+  Duration songPosition = Duration.zero;
+  bool dragging = false;
+  double seekBarValue = 0, maxValue = 0;
+  late Color color;
+  late StreamSubscription durationSubscription, positionSubscription;
+
+  @override
+  void initState() {
+    durationSubscription = widget.songDuration.listen((duration) async => setState(() => songDuration = duration));
+    positionSubscription = widget.songPosition.listen((position) async => setState(() => songPosition = position));
+    color = widget.initialColor;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder<int>(
-      stream: positionStream,
-      builder: (context, snapshot) => StatefulBuilder(
-        builder: (context, setState) {
-          if (!drag) {
-            position = snapshot.data ?? 0;
-          }
-          return Slider(
-            min: 0,
-            max: songDuration.toDouble(),
-            value: position.toDouble(),
-            activeColor: AppColor.offWhite,
-            inactiveColor: AppColor.offWhite.withOpacity(0.4),
-            onChanged: (value) => setState(() {
-              drag = true;
-              position = value.toInt();
-            }),
-            onChangeEnd: (value) {
-              drag = false;
-              onSeek(position);
-              position = snapshot.data ?? 0;
+    seekBarValue = dragging ? seekBarValue : songPosition.inSeconds.toDouble();
+    maxValue = songDuration?.inSeconds.toDouble() ?? 1;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          strFromDuration(songPosition),
+          style: TextStyle(color: color.withOpacity(0.7)),
+        ),
+        Expanded(
+          child: Slider(
+            onChanged: (value) {
+              dragging = true;
+              setState(() => seekBarValue = value);
             },
-          );
-        },
-      ),
+            onChangeEnd: (value) {
+              dragging = false;
+              widget.onSeek(value.toInt());
+            },
+            max: maxValue,
+            value: seekBarValue,
+            activeColor: color.withOpacity(0.5),
+            inactiveColor: color.withOpacity(0.1),
+            thumbColor: color.withOpacity(1),
+          ),
+        ),
+        Text(
+          strFromDuration(songDuration ?? Duration.zero),
+          style: TextStyle(color: color.withOpacity(0.7)),
+        ),
+      ],
     );
+  }
+
+  String strFromDuration(Duration duration) => duration.toString().substring(
+        duration.toString().indexOf(':') + 1,
+        duration.toString().indexOf('.'),
+      );
+
+  void changeColor(Color color) => setState(() => this.color = color);
+
+  @override
+  void dispose() {
+    durationSubscription.cancel();
+    positionSubscription.cancel();
+    super.dispose();
   }
 }

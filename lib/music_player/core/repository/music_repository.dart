@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_media_metadata/flutter_media_metadata.dart';
 import 'package:hive/hive.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:path/path.dart' as path;
 import 'package:storage_helper/storage_helper.dart';
 
@@ -29,6 +31,13 @@ class MusicRepository {
         var metadata = await MetadataRetriever.fromFile(File(songPath));
         String trackName = metadata.trackName ?? path.basename(songPath);
         String? coverImagePath = await StorageHelper.getAlbumCover(trackName, metadata.albumArt);
+        Color dominantColor = AppColor.darkBlue;
+        Color textColor = AppColor.offWhite;
+        if (coverImagePath != null) {
+          PaletteGenerator paletteGenerator = await PaletteGenerator.fromImageProvider(FileImage(File(coverImagePath)));
+          dominantColor = paletteGenerator.dominantColor?.color ?? dominantColor;
+          textColor =  paletteGenerator.dominantColor?.titleTextColor ?? textColor;
+        }
         var song = Song(
           title: trackName,
           artist: metadata.trackArtistNames?.join(' ,') ?? 'NA',
@@ -36,6 +45,8 @@ class MusicRepository {
           albumArtUrl: coverImagePath,
           filePath: songPath,
           isFavorite: false,
+          dominantColor: dominantColor.value,
+          textColor: textColor.value,
         );
         musicBox.put(songPath, song);
       }

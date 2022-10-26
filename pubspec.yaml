@@ -11,12 +11,12 @@ dependencies:
   flutter:
     sdk: flutter
 
-   # User Interface
+  # User Interface
   cupertino_icons:
   phosphor_flutter:
   lottie:
   shimmer:
-  url_launcher:
+  palette_generator:
 
   # State Management
   bloc:
@@ -41,6 +41,8 @@ dependencies:
 
   # Misc
   home_widget:
+  url_launcher:
+  path:
 
 dev_dependencies:
   flutter_test:
