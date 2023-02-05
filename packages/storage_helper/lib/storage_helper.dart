@@ -53,5 +53,18 @@ class StorageHelper {
     }
   }
 
+  static Future<String?> getAlbumCoverPath(String title, Uint8List? albumCover) async {
+    try {
+      if (albumCover != null) {
+        var tempDir = await getTemporaryDirectory();
+        return path.join(tempDir.path, '$title.png');
+      } else {
+        return null;
+      }
+    } catch (e) {
+      return null;
+    }
+  }
+
   static Future<Directory> getDocumentsDirectory() => getApplicationDocumentsDirectory();
 }

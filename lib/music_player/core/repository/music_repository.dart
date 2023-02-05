@@ -16,7 +16,8 @@ class MusicRepository {
   Future<void> fetchSongsFromStorage() async {
     List<String> storageSongs = await StorageHelper.getAudioList();
     Logger.data('Songs: ${storageSongs.toString()}');
-    List<String> datastoreSongs = musicBox.values.map((e) => e.filePath).toList();
+    List<String> datastoreSongs =
+        musicBox.values.map((e) => e.filePath).toList();
 
     // Deleting songs from datastore which are not present in storage
     for (var song in datastoreSongs) {
@@ -28,27 +29,36 @@ class MusicRepository {
     // Add songs to datastore which are not present in datastore
     for (var songPath in storageSongs) {
       if (!datastoreSongs.contains(songPath)) {
-        var metadata = await MetadataRetriever.fromFile(File(songPath));
-        String trackName = metadata.trackName ?? path.basename(songPath);
-        String? coverImagePath = await StorageHelper.getAlbumCover(trackName, metadata.albumArt);
-        Color dominantColor = AppColor.darkBlue;
-        Color textColor = AppColor.offWhite;
-        if (coverImagePath != null) {
-          PaletteGenerator paletteGenerator = await PaletteGenerator.fromImageProvider(FileImage(File(coverImagePath)));
-          dominantColor = paletteGenerator.dominantColor?.color ?? dominantColor;
-          textColor =  paletteGenerator.dominantColor?.titleTextColor ?? textColor;
+        try {
+          var metadata = await MetadataRetriever.fromFile(File(songPath));
+          String trackName = metadata.trackName ?? path.basename(songPath);
+          String? coverImagePath = await StorageHelper.getAlbumCover(
+              trackName, metadata.albumArt);
+          Color dominantColor = AppColor.darkBlue;
+          Color textColor = AppColor.offWhite;
+          if (coverImagePath != null) {
+            PaletteGenerator paletteGenerator =
+                await PaletteGenerator.fromImageProvider(
+                    FileImage(File(coverImagePath)));
+            dominantColor =
+                paletteGenerator.dominantColor?.color ?? dominantColor;
+            textColor =
+                paletteGenerator.dominantColor?.titleTextColor ?? textColor;
+          }
+          var song = Song(
+            title: trackName,
+            artist: metadata.trackArtistNames?.join(' ,') ?? 'NA',
+            album: metadata.albumName ?? 'NA',
+            albumArtUrl: coverImagePath,
+            filePath: songPath,
+            isFavorite: false,
+            dominantColor: dominantColor.value,
+            textColor: textColor.value,
+          );
+          musicBox.put(songPath, song);
+        } catch (e) {
+          Logger.error('MusicRepo.fetchSongsFromStorage().error: ', e);
         }
-        var song = Song(
-          title: trackName,
-          artist: metadata.trackArtistNames?.join(' ,') ?? 'NA',
-          album: metadata.albumName ?? 'NA',
-          albumArtUrl: coverImagePath,
-          filePath: songPath,
-          isFavorite: false,
-          dominantColor: dominantColor.value,
-          textColor: textColor.value,
-        );
-        musicBox.put(songPath, song);
       }
     }
   }
@@ -63,7 +73,8 @@ class MusicRepository {
       return coverImage;
     } else {
       var metadata = await MetadataRetriever.fromFile(File(song.filePath));
-      String? coverImagePath = await StorageHelper.getAlbumCover(song.title, metadata.albumArt);
+      String? coverImagePath =
+          await StorageHelper.getAlbumCover(song.title, metadata.albumArt);
       if (coverImagePath == null) {
         song.albumArtUrl == null;
         await song.save();

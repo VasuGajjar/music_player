@@ -40,7 +40,6 @@ dependencies:
   json_annotation:
 
   # Misc
-  home_widget:
   url_launcher:
   path:
 

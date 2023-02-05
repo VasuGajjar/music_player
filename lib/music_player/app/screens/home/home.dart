@@ -14,7 +14,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   int currentPage = 0;
   late TabController tabController = TabController(
     length: pages.length,
@@ -66,7 +67,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     tabController.addListener(tabControllerListener);
   }
 
-  void tabControllerListener() => setState(() => currentPage = tabController.index);
+  void tabControllerListener() =>
+      setState(() => currentPage = tabController.index);
 
   @override
   Widget build(BuildContext context) {
@@ -80,12 +82,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           systemNavigationBarDividerColor: AppColor.offWhite,
         ),
         leading: IconButton(
-          onPressed: () => showSearch<Song?>(context: context, delegate: Search()).then((value) {
+          onPressed: () =>
+              showSearch<Song?>(context: context, delegate: Search())
+                  .then((value) {
             if (value == null) return;
 
             var songs = context.read<MusicCubit>().state.songs;
             int index = songs.indexOf(value);
-            context.read<PlayerBloc>().add(PlayerNewSong(songs: songs, currentIndex: index));
+            context
+                .read<PlayerBloc>()
+                .add(PlayerNewSong(songs: songs, currentIndex: index));
           }),
           icon: const Icon(PhosphorIcons.magnifyingGlass),
         ),
@@ -130,7 +136,8 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           if (currentPage == 2) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const CreateEditPlaylist()),
+              MaterialPageRoute(
+                  builder: (context) => const CreateEditPlaylist()),
             );
           } else {
             List<Song> songs;
@@ -139,7 +146,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             if (currentPage == 0) {
               songs = context.read<MusicCubit>().state.songs;
             } else {
-              songs = context.read<MusicCubit>().state.songs.where((element) => element.isFavorite).toList();
+              songs = context
+                  .read<MusicCubit>()
+                  .state
+                  .songs
+                  .where((element) => element.isFavorite)
+                  .toList();
             }
             currentIndex = Random().nextInt(songs.length);
 
@@ -149,11 +161,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ..add(PlayerPlayPause(true));
           }
         },
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Constant.radiusMedium)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(Constant.radiusMedium)),
         child: AnimatedCrossFade(
           firstChild: const Icon(PhosphorIcons.shuffle),
           secondChild: const Icon(PhosphorIcons.plus),
-          crossFadeState: currentPage == 2 ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+          crossFadeState: currentPage == 2
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
           duration: const Duration(milliseconds: 400),
         ),
       ),

@@ -18,7 +18,7 @@ class MusicPlayerApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => MusicCubit()..getSongs()),
         BlocProvider(create: (context) => PlaylistCubit()),
-        BlocProvider(create: (context) => PlayerBloc()..registerHomeWidgetCallback()),
+        BlocProvider(create: (context) => PlayerBloc()),
       ],
       child: MaterialApp(
         title: 'Music Player',
@@ -26,7 +26,7 @@ class MusicPlayerApp extends StatelessWidget {
         scrollBehavior: const CupertinoScrollBehavior(),
         theme: AppTheme.lightTheme,
         routes: {
-          '/splash': (context) => const SplashScreen(), 
+          '/splash': (context) => const SplashScreen(),
           '/': (context) => const HomeScreen(),
         },
         initialRoute: '/splash',

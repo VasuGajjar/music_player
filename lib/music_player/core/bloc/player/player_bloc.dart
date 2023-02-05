@@ -3,7 +3,6 @@
 import 'dart:async';
 
 import 'package:equatable/equatable.dart';
-import 'package:home_widget/home_widget.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -20,25 +19,12 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
 
   PlayerBloc() : super(MusicPlayerState.initial()) {
     _songIndexStream = _audioPlayer.currentIndexStream.listen((index) {
-      HomeWidget.saveWidgetData('title', state.songs[index ?? 0].title);
-      HomeWidget.saveWidgetData('artist', state.songs[index ?? 0].artist);
-      HomeWidget.saveWidgetData('image', state.songs[index ?? 0].albumArtUrl);
-      HomeWidget.updateWidget(
-        name: 'HomeWidgetPlayerProvider',
-        androidName: 'HomeWidgetPlayerProvider',
-        qualifiedAndroidName: 'com.vasugajjar.music_player.HomeWidgetPlayerProvider',
-      );
-
+      //TODO: Update Widget From Here
       emit(state.copyWith(currentIndex: index));
     });
 
     _playPauseStream = _audioPlayer.playingStream.listen((playing) {
-      HomeWidget.saveWidgetData('play', playing.toString());
-      HomeWidget.updateWidget(
-        name: 'HomeWidgetPlayerProvider',
-        androidName: 'HomeWidgetPlayerProvider',
-        qualifiedAndroidName: 'com.vasugajjar.music_player.HomeWidgetPlayerProvider',
-      );
+      //TODO: Update Widget From Here
       emit(state.copyWith(playing: playing));
     });
 
@@ -145,28 +131,6 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
 
   @override
   Map<String, dynamic>? toJson(MusicPlayerState state) => state.toJson();
-
-  dynamic homeWidgetBackgroundCallback(Uri? uri) {
-    if (state.currentIndex != null) {
-      if (uri != null) {
-        if (uri.toString().contains("playPause")) {
-          add(PlayerPlayPause(!state.playing));
-        } else if (uri.toString().contains("next")) {
-          add(PlayerNextPrevious(true));
-          add(PlayerPlayPause(true));
-        } else if (uri.toString().contains("previous")) {
-          add(PlayerNextPrevious(false));
-          add(PlayerPlayPause(true));
-        }
-      }
-    }
-  }
-
-  void registerHomeWidgetCallback() async {
-    // Logger.debug('Registering HomeWidget callback');
-    // var res = await HomeWidget.registerBackgroundCallback(homeWidgetBackgroundCallback);
-    // Logger.data('HomeWidget callback status: $res');
-  }
 }
 
 extension LoopModeX on LoopMode {

@@ -9,7 +9,8 @@ import 'music_player/music_player.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
+  await SystemChrome.setPreferredOrientations(
+      [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
 
   // Initializing Player Notification
   await JustAudioBackground.init(
@@ -26,11 +27,12 @@ void main() async {
   await Hive.openBox<Song>(Constant.musicBox);
   Hive.registerAdapter(PlaylistAdapter());
   await Hive.openBox<Playlist>(Constant.playlistBox);
-  final storage = await HydratedStorage.build(storageDirectory: directory);
+  HydratedBloc.storage = await HydratedStorage.build(storageDirectory: directory);
 
   // Running Application
-  HydratedBlocOverrides.runZoned(
-    () => runApp(const MusicPlayerApp()),
-    storage: storage,
-  );
+  runApp(const MusicPlayerApp());
+  // HydratedBlocOverrides.runZoned(
+  //   () => runApp(const MusicPlayerApp()),
+  //   storage: storage,
+  // );
 }

@@ -19,9 +19,11 @@ class MusicCubit extends Cubit<MusicState> {
   final _musicRepo = MusicRepository();
   late StreamSubscription<List<Song>> _songsStreamController;
 
-  void getSongs() async {
+  Future<void> getSongs() async {
     try {
+      emit(MusicState.loading());
       await _musicRepo.fetchSongsFromStorage();
+      emit(MusicState.success(_musicRepo.musicBox.values.toList()));
     } on StorageHelperException catch (e) {
       emit(MusicState.failure(e.message));
     } catch (_) {
