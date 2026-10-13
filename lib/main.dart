@@ -27,7 +27,7 @@ void main() async {
   await Hive.openBox<Song>(Constant.musicBox);
   Hive.registerAdapter(PlaylistAdapter());
   await Hive.openBox<Playlist>(Constant.playlistBox);
-  HydratedBloc.storage = await HydratedStorage.build(storageDirectory: directory);
+  HydratedBloc.storage = await HydratedStorage.build(storageDirectory: HydratedStorageDirectory(directory.path));
 
   // Running Application
   runApp(const MusicPlayerApp());

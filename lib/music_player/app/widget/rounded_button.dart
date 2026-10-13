@@ -16,7 +16,7 @@ class RoundedButton {
           ? TextButton.icon(
               onPressed: onPress,
               style: TextButton.styleFrom(
-                primary: primary,
+                backgroundColor: primary,
                 textStyle: textStyle,
                 padding: padding,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(cornerRadius ?? Constant.radiusSmall)),
@@ -27,7 +27,7 @@ class RoundedButton {
           : TextButton(
               onPressed: onPress,
               style: TextButton.styleFrom(
-                primary: primary,
+                backgroundColor: primary,
                 textStyle: textStyle,
                 padding: padding,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(cornerRadius ?? Constant.radiusSmall)),
@@ -51,8 +51,8 @@ class RoundedButton {
           ? ElevatedButton.icon(
               onPressed: onPress,
               style: ElevatedButton.styleFrom(
-                primary: backgroundColor,
-                onPrimary: foregroundColor,
+                backgroundColor: backgroundColor,
+                foregroundColor: foregroundColor,
                 shadowColor: shadowColor,
                 textStyle: textStyle,
                 padding: padding,
@@ -64,8 +64,8 @@ class RoundedButton {
           : TextButton(
               onPressed: onPress,
               style: ElevatedButton.styleFrom(
-                primary: backgroundColor,
-                onPrimary: foregroundColor,
+                backgroundColor: backgroundColor,
+                foregroundColor: foregroundColor,
                 shadowColor: shadowColor,
                 textStyle: textStyle,
                 padding: padding,
@@ -89,8 +89,8 @@ class RoundedButton {
           ? ElevatedButton.icon(
               onPressed: onPress,
               style: ElevatedButton.styleFrom(
-                primary: color.withOpacity(opacity),
-                onPrimary: color,
+                backgroundColor: color.withOpacity(opacity),
+                foregroundColor: color,
                 shadowColor: Colors.transparent,
                 textStyle: textStyle,
                 padding: padding,
@@ -102,8 +102,8 @@ class RoundedButton {
           : TextButton(
               onPressed: onPress,
               style: ElevatedButton.styleFrom(
-                primary: color.withOpacity(opacity),
-                onPrimary: color,
+                backgroundColor: color.withOpacity(opacity),
+                foregroundColor: color,
                 shadowColor: Colors.transparent,
                 textStyle: textStyle,
                 padding: padding,

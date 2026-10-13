@@ -1,7 +1,6 @@
 package com.vasugajjar.storage_helper
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
@@ -67,27 +66,18 @@ class StorageHelperPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     override fun onDetachedFromActivity() {
     }
 
-    private fun checkStoragePermission(): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val result1 = context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-            val result2 = context.checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-            return result1 == PackageManager.PERMISSION_GRANTED && result2 == PackageManager.PERMISSION_GRANTED
-        }
-        return true
-    }
+    // Android 13+ replaced READ_EXTERNAL_STORAGE with granular media permissions.
+    private val storagePermission =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
+        else Manifest.permission.READ_EXTERNAL_STORAGE
+
+    private fun checkStoragePermission(): Boolean =
+        context.checkSelfPermission(storagePermission) == PackageManager.PERMISSION_GRANTED
 
     private fun requestStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            activity.requestPermissions(
-                arrayOf(
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ), Constant.permissionStorageRequestCode
-            )
-        }
+        activity.requestPermissions(arrayOf(storagePermission), Constant.permissionStorageRequestCode)
     }
 
-    @SuppressLint("Recycle")
     private fun getSongs() {
         try {
             val selection = MediaStore.Audio.Media.IS_MUSIC + " != 0"
@@ -95,19 +85,19 @@ class StorageHelperPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 MediaStore.Audio.Media.DATA
             )
 
-            val cursor = activity.contentResolver.query(
+            val songs: MutableList<String> = ArrayList()
+            context.contentResolver.query(
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 projection,
                 selection,
                 null,
                 null
-            )
-            val songs: MutableList<String> = ArrayList()
-            cursor?.moveToFirst()
-            while (cursor?.moveToNext() == true) {
-                songs.add(cursor.getString(0))
+            )?.use { cursor ->
+                while (cursor.moveToNext()) {
+                    songs.add(cursor.getString(0))
+                }
             }
-            result?.success(songs.toList());
+            result?.success(songs.toList())
         } catch (e: Exception) {
             result?.error(e.message ?: "error", e.localizedMessage, e.stackTraceToString())
         }

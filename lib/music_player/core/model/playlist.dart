@@ -6,7 +6,7 @@ import '../../music_player.dart';
 part 'playlist.g.dart';
 
 @HiveType(typeId: 1)
-class Playlist with EquatableMixin, HiveObjectMixin {
+class Playlist with Equatable, HiveObjectMixin {
   @HiveField(0)
   String name;
 

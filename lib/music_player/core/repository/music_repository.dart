@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:typed_data';
 
+import 'package:audio_metadata_reader/audio_metadata_reader.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_media_metadata/flutter_media_metadata.dart';
 import 'package:hive/hive.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:path/path.dart' as path;
@@ -30,10 +32,10 @@ class MusicRepository {
     for (var songPath in storageSongs) {
       if (!datastoreSongs.contains(songPath)) {
         try {
-          var metadata = await MetadataRetriever.fromFile(File(songPath));
-          String trackName = metadata.trackName ?? path.basename(songPath);
-          String? coverImagePath = await StorageHelper.getAlbumCover(
-              trackName, metadata.albumArt);
+          var metadata = await _readMetadata(songPath);
+          String trackName = metadata?.title ?? path.basename(songPath);
+          String? coverImagePath =
+              await StorageHelper.getAlbumCover(trackName, _albumArt(metadata));
           Color dominantColor = AppColor.darkBlue;
           Color textColor = AppColor.offWhite;
           if (coverImagePath != null) {
@@ -47,8 +49,8 @@ class MusicRepository {
           }
           var song = Song(
             title: trackName,
-            artist: metadata.trackArtistNames?.join(' ,') ?? 'NA',
-            album: metadata.albumName ?? 'NA',
+            artist: metadata?.artist ?? 'NA',
+            album: metadata?.album ?? 'NA',
             albumArtUrl: coverImagePath,
             filePath: songPath,
             isFavorite: false,
@@ -72,9 +74,9 @@ class MusicRepository {
     if (await coverImage.exists()) {
       return coverImage;
     } else {
-      var metadata = await MetadataRetriever.fromFile(File(song.filePath));
+      var metadata = await _readMetadata(song.filePath);
       String? coverImagePath =
-          await StorageHelper.getAlbumCover(song.title, metadata.albumArt);
+          await StorageHelper.getAlbumCover(song.title, _albumArt(metadata));
       if (coverImagePath == null) {
         song.albumArtUrl == null;
         await song.save();
@@ -84,6 +86,22 @@ class MusicRepository {
       }
     }
   }
+
+  // Parsing is synchronous file I/O, so keep it off the UI isolate. Static so the
+  // closure doesn't capture `this` (Hive boxes can't cross isolates).
+  // Returns null for formats the parser doesn't support; callers fall back to the filename.
+  static Future<AudioMetadata?> _readMetadata(String filePath) async {
+    try {
+      return await Isolate.run(
+          () => readMetadata(File(filePath), getImage: true));
+    } catch (e) {
+      Logger.error('MusicRepo._readMetadata().error: ', e);
+      return null;
+    }
+  }
+
+  static Uint8List? _albumArt(AudioMetadata? metadata) =>
+      metadata?.pictures.firstOrNull?.bytes;
 
   Stream<List<Song>> get allSongs async* {
     // await Future.delayed(const Duration(milliseconds: 200));

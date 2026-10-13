@@ -15,7 +15,6 @@ class PlayerTile extends StatefulWidget {
 }
 
 class PlayerTileState extends State<PlayerTile> {
-
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<PlayerBloc, MusicPlayerState>(
@@ -27,30 +26,42 @@ class PlayerTileState extends State<PlayerTile> {
         // }
       },
       builder: (context, state) {
-        if (state.currentIndex == null || state.songs.length <= (state.currentIndex ?? 0)) {
+        if (state.currentIndex == null ||
+            state.songs.length <= (state.currentIndex ?? 0)) {
           return const SizedBox.shrink();
         }
 
         Song song = state.songs[state.currentIndex!];
 
-        return Padding(
-          padding: const EdgeInsets.all(16),
-          child: InkWell(
-            onTap: widget.onTap,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(Constant.radiusLarge),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                child: Container(
-                  decoration: BoxDecoration(color: AppColor.darkBlue.withOpacity(0.7)),
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: ListTile(
-                    leading: SongCoverImage(song: song),
-                    title: Text(song.title, maxLines: 1, style: const TextStyle(color: AppColor.offWhite)),
-                    subtitle: Text(song.artist, maxLines: 1, style: const TextStyle(color: AppColor.offWhite)),
-                    trailing: PlayPauseButton(
-                      state: state.playing,
-                      onPlayPauseTap: (value) => context.read<PlayerBloc>().add(PlayerPlayPause(value)),
+        // Android 15+ forces edge-to-edge; keep the tile above the system nav bar.
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: InkWell(
+              onTap: widget.onTap,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(Constant.radiusLarge),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: AppColor.darkBlue.withOpacity(0.7)),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: ListTile(
+                      leading: SongCoverImage(song: song),
+                      title: Text(song.title,
+                          maxLines: 1,
+                          style: const TextStyle(color: AppColor.offWhite)),
+                      subtitle: Text(song.artist,
+                          maxLines: 1,
+                          style: const TextStyle(color: AppColor.offWhite)),
+                      trailing: PlayPauseButton(
+                        state: state.playing,
+                        onPlayPauseTap: (value) => context
+                            .read<PlayerBloc>()
+                            .add(PlayerPlayPause(value)),
+                      ),
                     ),
                   ),
                 ),

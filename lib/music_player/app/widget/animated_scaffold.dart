@@ -62,7 +62,7 @@ class AnimatedScaffoldState extends State<AnimatedScaffold> with SingleTickerPro
 
             return Stack(
               children: [
-                Expanded(
+                Positioned.fill(
                   child: Container(
                     color: widget.drawerBackgroundColor,
                     child: widget.drawer,

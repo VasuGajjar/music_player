@@ -7,7 +7,7 @@ part 'song.g.dart';
 
 @JsonSerializable()
 @HiveType(typeId: 0)
-class Song with EquatableMixin, HiveObjectMixin {
+class Song with Equatable, HiveObjectMixin {
   @HiveField(0)
   final String title;
 
