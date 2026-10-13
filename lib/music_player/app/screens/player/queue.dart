@@ -9,26 +9,30 @@ class QueueList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<PlayerBloc, MusicPlayerState>(
-      listener: (context, state) {},
+    return BlocBuilder<PlayerBloc, MusicPlayerState>(
       builder: (context, state) {
         return ListView.builder(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          itemCount: state.songs.length,
+          padding: const EdgeInsets.only(bottom: 16),
+          itemCount: state.songs.length + 1,
           itemBuilder: (context, index) {
-            Song song = state.songs[index];
-            return ListTile(
+            if (index == 0) {
+              return const Padding(
+                padding: EdgeInsets.fromLTRB(16, 20, 16, 8),
+                child: Text('Up next', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              );
+            }
+            index--;
+            return MusicTile(
+              song: state.songs[index],
+              selected: index == state.currentIndex,
               onTap: () => context.read<PlayerBloc>()
                 ..add(PlayerNewSong(songs: state.songs, currentIndex: index))
                 ..add(PlayerPlayPause(true)),
-              leading: SongCoverImage(song: song),
-              title: Text(song.title, maxLines: 1),
-              subtitle: Text(song.artist, maxLines: 1),
               trailing: IconButton(
+                tooltip: 'Remove',
                 onPressed: () => context.read<PlayerBloc>().add(PlayerRemoveSong(index)),
                 icon: const Icon(PhosphorIcons.minusCircle),
               ),
-              tileColor: index == state.currentIndex ? AppColor.offWhite : AppColor.white,
             );
           },
         );

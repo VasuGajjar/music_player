@@ -6,35 +6,22 @@ class ShimmerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    Widget bar(double height, double width) => Container(
+          height: height,
+          width: width,
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
+        );
+
     return Shimmer.fromColors(
-      baseColor: Colors.grey.shade300,
-      highlightColor: Colors.grey.shade100,
+      baseColor: scheme.surfaceContainerHighest,
+      highlightColor: scheme.surfaceContainerHigh,
       child: ListTile(
-        leading: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
-          child: Container(height: 56, width: 56, color: Colors.white),
-        ),
-        title: Align(
-          alignment: Alignment.centerLeft,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: SizedBox(
-              height: 24,
-              width: 180,
-              child: Container(color: Colors.white),
-            ),
-          ),
-        ),
-        subtitle: Align(
-          alignment: Alignment.centerLeft,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: SizedBox(
-              height: 16,
-              width: 120,
-              child: Container(color: Colors.white),
-            ),
-          ),
+        leading: bar(48, 48),
+        title: Align(alignment: Alignment.centerLeft, child: bar(14, 160)),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 6),
+          child: Align(alignment: Alignment.centerLeft, child: bar(12, 100)),
         ),
       ),
     );

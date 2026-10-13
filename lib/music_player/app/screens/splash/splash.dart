@@ -17,21 +17,9 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              Assets.logoImage,
-              height: 80,
-              width: 80,
-            ),
-            const SizedBox(height: Constant.paddingLarge),
-            const Text.rich(
-              TextSpan(text: 'Music ', children: [
-                TextSpan(
-                  text: 'Player',
-                  style: TextStyle(color: AppColor.darkPurple),
-                ),
-              ]),
-              style: TextStyles.h1Bold,
-            ),
+            Image.asset(Assets.logoImage, height: 64, width: 64),
+            const SizedBox(height: Constant.paddingMedium),
+            const Text('Music', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.4)),
           ],
         ),
       ),

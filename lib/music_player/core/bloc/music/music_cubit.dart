@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:storage_helper/storage_helper.dart';
@@ -32,8 +31,6 @@ class MusicCubit extends Cubit<MusicState> {
   }
 
   Future<void> markFavorite(Song song) => _musicRepo.markFavorite(song);
-
-  Future<File?> getCoverImage(Song song) => _musicRepo.getCoverImage(song);
 
   @override
   Future<void> close() {

@@ -5,12 +5,19 @@ import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 import '../../../music_player.dart';
 
 class Search extends SearchDelegate<Song?> {
+  Search() : super(searchFieldLabel: 'Search songs, artists, albums');
+
+  // Keep the app's own app bar styling instead of SearchDelegate's grey default.
+  @override
+  ThemeData appBarTheme(BuildContext context) => Theme.of(context);
+
   @override
   List<Widget>? buildActions(BuildContext context) => [
-        IconButton(
-          icon: const Icon(PhosphorIcons.x),
-          onPressed: () => query = '',
-        )
+        if (query.isNotEmpty)
+          IconButton(
+            icon: const Icon(PhosphorIcons.x),
+            onPressed: () => query = '',
+          ),
       ];
 
   @override
@@ -24,25 +31,29 @@ class Search extends SearchDelegate<Song?> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    List<Song> songs = context.read<MusicCubit>().state.songs.where((item) => item.title.toLowerCase().contains(query.toLowerCase()) || item.album.toLowerCase().contains(query.toLowerCase()) || item.artist.toLowerCase().contains(query.toLowerCase())).toList();
-
     if (query.trim().isEmpty) {
-      return const Center(
-        child: LottieWithText(
-          animation: Assets.searchAnimation,
-          text: 'Type to Search',
-        ),
-      );
+      return const EmptyState(icon: PhosphorIcons.magnifyingGlass, text: 'Type to search');
+    }
+
+    final q = query.toLowerCase();
+    List<Song> songs = context
+        .read<MusicCubit>()
+        .state
+        .songs
+        .where((item) => item.title.toLowerCase().contains(q) || item.album.toLowerCase().contains(q) || item.artist.toLowerCase().contains(q))
+        .toList();
+
+    if (songs.isEmpty) {
+      return const EmptyState(icon: PhosphorIcons.musicNote, text: 'No matches');
     }
 
     return ListView.builder(
       itemCount: songs.length,
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      itemBuilder: (context, index) => ListTile(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemBuilder: (context, index) => MusicTile(
+        song: songs[index],
         onTap: () => close(context, songs[index]),
-        leading: SongCoverImage(song: songs[index]),
-        title: Text(songs[index].title, maxLines: 1),
-        subtitle: Text(songs[index].artist, maxLines: 1),
+        trailing: const SizedBox.shrink(),
       ),
     );
   }

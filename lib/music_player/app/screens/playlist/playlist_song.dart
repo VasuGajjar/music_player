@@ -15,89 +15,105 @@ class PlaylistSongScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PlaylistCubit, PlaylistState>(
       builder: (context, state) {
+        final songs = playlist.songs;
+        final player = context.read<PlayerBloc>();
+
         return Scaffold(
           extendBody: true,
           appBar: AppBar(
-            title: Text(playlist.name),
             actions: [
               IconButton(
-                onPressed: () => context.read<PlaylistCubit>().deletePlaylist(playlist).then((value) => Navigator.pop(context)),
-                icon: const Icon(PhosphorIcons.trash),
-              ),
-              IconButton(
+                tooltip: 'Edit',
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => CreateEditPlaylist(playlist: playlist)),
                 ),
-                icon: const Icon(PhosphorIcons.pen),
+                icon: const Icon(PhosphorIcons.pencilSimple),
               ),
+              IconButton(
+                tooltip: 'Delete',
+                onPressed: () => context.read<PlaylistCubit>().deletePlaylist(playlist).then((value) {
+                  if (context.mounted) Navigator.pop(context);
+                }),
+                icon: const Icon(PhosphorIcons.trash),
+              ),
+              const SizedBox(width: 4),
             ],
           ),
-          body: ResizableScrollView(
+          body: ListView(
+            padding: const EdgeInsets.only(bottom: 160),
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 8, 16),
-                      child: RoundedButton.semitransparentButton(
-                        onPress: () => context.read<PlayerBloc>()
-                          ..add(PlayerNewSong(songs: playlist.songs, currentIndex: 0))
-                          ..add(PlayerShuffle(false))
-                          ..add(PlayerPlayPause(true)),
-                        color: AppColor.green,
-                        icon: PhosphorIcons.musicNote,
-                        title: 'Play All',
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                child: Row(
+                  children: [
+                    PlaylistCoverImage(playlist: playlist, height: 96, width: 96, borderRadius: Constant.radiusSmall),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            playlist.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.4),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${songs.length} tracks',
+                            style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(8, 16, 16, 16),
-                      child: RoundedButton.semitransparentButton(
-                        onPress: () => context.read<PlayerBloc>()
-                          ..add(PlayerNewSong(songs: playlist.songs, currentIndex: Random().nextInt(playlist.songs.length)))
-                          ..add(PlayerShuffle(true))
-                          ..add(PlayerPlayPause(true)),
-                        color: AppColor.purple,
-                        icon: PhosphorIcons.shuffle,
-                        title: 'Shuffle All',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              ...playlist.songs.map((item) => musicTile(
-                    song: item,
-                    onTap: () => context.read<PlayerBloc>()
-                    ..add(PlayerNewSong(songs: playlist.songs, currentIndex: playlist.songs.indexOf(item)))
-                    ..add(PlayerPlayPause(true)),
-                  )),
-              const SizedBox(height: 120)
-            ],
-          ),
-          bottomNavigationBar: PlayerTile(
-            onTap: () => showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              clipBehavior: Clip.antiAlias,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(Constant.radiusMedium),
+                  ],
                 ),
               ),
-              builder: (context) => const PlayerScreen(),
-            ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: FilledButton.icon(
+                        onPressed: songs.isEmpty
+                            ? null
+                            : () => player
+                              ..add(PlayerNewSong(songs: songs, currentIndex: 0))
+                              ..add(PlayerShuffle(false))
+                              ..add(PlayerPlayPause(true)),
+                        icon: const Icon(PhosphorIcons.playFill, size: 18),
+                        label: const Text('Play'),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: songs.isEmpty
+                            ? null
+                            : () => player
+                              ..add(PlayerNewSong(songs: songs, currentIndex: Random().nextInt(songs.length)))
+                              ..add(PlayerShuffle(true))
+                              ..add(PlayerPlayPause(true)),
+                        icon: const Icon(PhosphorIcons.shuffle, size: 18),
+                        label: const Text('Shuffle'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              for (final (index, song) in songs.indexed)
+                MusicTile(
+                  song: song,
+                  onTap: () => player
+                    ..add(PlayerNewSong(songs: songs, currentIndex: index))
+                    ..add(PlayerPlayPause(true)),
+                ),
+            ],
           ),
+          bottomNavigationBar: const PlayerTile(),
         );
       },
     );
   }
-
-  Widget musicTile({required Song song, required void Function() onTap}) => ListTile(
-        onTap: onTap,
-        leading: SongCoverImage(song: song),
-        title: Text(song.title, maxLines: 1),
-        subtitle: Text(song.artist, maxLines: 1),
-      );
 }

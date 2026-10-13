@@ -11,105 +11,58 @@ class PlaylistPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<PlaylistCubit, PlaylistState>(
       builder: (context, state) {
-        if (state.status.isLoading) {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const LottieWithText(
-                animation: Assets.pandaAnimation,
-                text: 'No Playlist Found',
-              ),
-              const SizedBox(height: 8),
-              RoundedButton.semitransparentButton(
-                onPress: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CreateEditPlaylist()),
-                ),
-                icon: PhosphorIcons.plus,
-                title: 'Create One',
-                color: AppColor.darkPurple,
-              ),
-            ],
-          );
-        } else if (state.status.isFailure) {
-          return Center(
-            child: LottieWithText(
-              animation: Assets.errorAnimation,
-              text: state.error,
+        if (state.status.isFailure) {
+          return EmptyState(icon: PhosphorIcons.warning, text: state.error);
+        }
+
+        // The playlist stream only emits after a change, so "loading" also means "none yet".
+        if (state.status.isLoading || (state.status.isSuccess && state.playlists.isEmpty)) {
+          return EmptyState(
+            icon: PhosphorIcons.playlist,
+            text: 'No playlists yet',
+            action: TextButton.icon(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateEditPlaylist())),
+              icon: const Icon(PhosphorIcons.plus, size: 18),
+              label: const Text('Create one'),
             ),
           );
-        } else if (state.status.isSuccess) {
-          if (state.playlists.isEmpty) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const LottieWithText(
-                  animation: Assets.pandaAnimation,
-                  text: 'No Playlist Found',
-                ),
-                const SizedBox(height: 8),
-                RoundedButton.semitransparentButton(
-                  onPress: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CreateEditPlaylist()),
-                  ),
-                  icon: PhosphorIcons.plus,
-                  title: 'Create One',
-                  color: AppColor.darkPurple,
-                ),
-              ],
-            );
-          } else {
-            return GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisSpacing: 4,
-                mainAxisSpacing: 4,
-                crossAxisCount: 2,
-                childAspectRatio: 0.85,
-              ),
-              itemCount: state.playlists.length,
-              padding: const EdgeInsets.all(Constant.paddingMedium),
-              itemBuilder: (BuildContext context, int index) => playlistTile(context, state.playlists[index]),
-            );
-          }
-        } else {
-          return const SizedBox.shrink();
         }
+
+        if (!state.status.isSuccess) return const SizedBox.shrink();
+
+        return GridView.builder(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisSpacing: Constant.paddingMedium,
+            mainAxisSpacing: Constant.paddingLarge,
+            crossAxisCount: 2,
+            childAspectRatio: 0.78,
+          ),
+          itemCount: state.playlists.length,
+          padding: const EdgeInsets.fromLTRB(Constant.paddingMedium, Constant.paddingMedium, Constant.paddingMedium, 160),
+          itemBuilder: (BuildContext context, int index) => playlistTile(context, state.playlists[index]),
+        );
       },
     );
   }
 }
 
-playlistTile(BuildContext context, Playlist playlist) => InkWell(
+Widget playlistTile(BuildContext context, Playlist playlist) => GestureDetector(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => PlaylistSongScreen(playlist: playlist)),
       ),
-      borderRadius: BorderRadius.circular(Constant.radiusMedium),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Constant.radiusMedium)),
-        child: Column(
-          children: [
-            Expanded(
-              child: PlaylistCoverImage(
-                playlist: playlist,
-                width: double.infinity,
-                borderRadius: 0,
-              ),
-            ),
-            ListTile(
-              title: Text(playlist.name),
-              subtitle: Text('${playlist.songs.length} Tracks'),
-              trailing: PlayPauseButton(
-                state: false,
-                color: AppColor.white,
-                onPlayPauseTap: (value) => context.read<PlayerBloc>()
-                  ..add(PlayerNewSong(songs: playlist.songs, currentIndex: 0))
-                  ..add(PlayerPlayPause(true)),
-              ),
-            ),
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: PlaylistCoverImage(playlist: playlist, width: double.infinity, height: double.infinity),
+          ),
+          const SizedBox(height: 8),
+          Text(playlist.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(
+            '${playlist.songs.length} tracks',
+            style: TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
+        ],
       ),
     );

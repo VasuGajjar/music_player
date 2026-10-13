@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../music_player.dart';
@@ -14,33 +13,40 @@ class SongCoverImage extends StatelessWidget {
   const SongCoverImage({
     Key? key,
     required this.song,
-    this.height = 54,
-    this.width = 54,
-    this.borderRadius = Constant.radiusMedium,
+    this.height = 48,
+    this.width = 48,
+    this.borderRadius = Constant.radiusSmall,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final placeholder = Center(
+      child: Icon(
+        PhosphorIcons.musicNote,
+        color: scheme.onSurfaceVariant,
+        size: (height.isFinite ? height : 48) / 2.5,
+      ),
+    );
+
     return Container(
       height: height,
       width: width,
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(color: AppColor.purple, borderRadius: BorderRadius.circular(borderRadius)),
-      child: FutureBuilder<File?>(
-        future: context.read<MusicCubit>().getCoverImage(song),
-        builder: (context, snapshot) => snapshot.data != null
-            ? Image.file(
-                snapshot.data!,
+      decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(borderRadius)),
+      child: song.albumArtUrl == null
+          ? placeholder
+          : LayoutBuilder(
+              builder: (context, box) => Image.file(
+                File(song.albumArtUrl!),
                 fit: BoxFit.cover,
-              )
-            : Center(
-                child: Icon(
-                  PhosphorIcons.musicNotes,
-                  color: AppColor.offWhite,
-                  size: height / 2,
-                ),
+                // Decode at the size shown, not the full embedded art: full-size decodes in
+                // every list tile overflow the image cache and make scrolling stutter.
+                cacheWidth: box.biggest.isFinite ? (box.biggest.longestSide * MediaQuery.devicePixelRatioOf(context)).round() : null,
+                gaplessPlayback: true,
+                errorBuilder: (context, error, stackTrace) => placeholder,
               ),
-      ),
+            ),
     );
   }
 }

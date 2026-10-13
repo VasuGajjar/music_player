@@ -1,33 +1,29 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../music_player.dart';
 
-class PlayerTile extends StatefulWidget {
-  final void Function() onTap;
+/// Mini player pinned to the bottom of a screen; tapping it opens [PlayerScreen].
+class PlayerTile extends StatelessWidget {
+  const PlayerTile({Key? key}) : super(key: key);
 
-  const PlayerTile({Key? key, required this.onTap}) : super(key: key);
+  static void openPlayer(BuildContext context) => showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        clipBehavior: Clip.antiAlias,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(Constant.radiusMedium)),
+        ),
+        builder: (context) => const PlayerScreen(),
+      );
 
-  @override
-  State<PlayerTile> createState() => PlayerTileState();
-}
-
-class PlayerTileState extends State<PlayerTile> {
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<PlayerBloc, MusicPlayerState>(
-      listener: (context, state) {
-        // if (state.playing) {
-        //   playerButton.currentState?.play();
-        // } else {
-        //   playerButton.currentState?.pause();
-        // }
-      },
+    final scheme = Theme.of(context).colorScheme;
+    return BlocBuilder<PlayerBloc, MusicPlayerState>(
       builder: (context, state) {
-        if (state.currentIndex == null ||
-            state.songs.length <= (state.currentIndex ?? 0)) {
+        if (state.currentIndex == null || state.songs.length <= (state.currentIndex ?? 0)) {
           return const SizedBox.shrink();
         }
 
@@ -37,32 +33,37 @@ class PlayerTileState extends State<PlayerTile> {
         return SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: InkWell(
-              onTap: widget.onTap,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(Constant.radiusLarge),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        color: AppColor.darkBlue.withOpacity(0.7)),
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: ListTile(
-                      leading: SongCoverImage(song: song),
-                      title: Text(song.title,
-                          maxLines: 1,
-                          style: const TextStyle(color: AppColor.offWhite)),
-                      subtitle: Text(song.artist,
-                          maxLines: 1,
-                          style: const TextStyle(color: AppColor.offWhite)),
-                      trailing: PlayPauseButton(
-                        state: state.playing,
-                        onPlayPauseTap: (value) => context
-                            .read<PlayerBloc>()
-                            .add(PlayerPlayPause(value)),
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: Material(
+              color: scheme.surfaceContainerHigh,
+              clipBehavior: Clip.antiAlias,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(Constant.radiusMedium),
+                side: BorderSide(color: scheme.outlineVariant),
+              ),
+              child: InkWell(
+                onTap: () => openPlayer(context),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      SongCoverImage(song: song, height: 44, width: 44),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(song.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w500)),
+                            Text(song.artist, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
+                          ],
+                        ),
                       ),
-                    ),
+                      PlayPauseButton(
+                        state: state.playing,
+                        onPlayPauseTap: (value) => context.read<PlayerBloc>().add(PlayerPlayPause(value)),
+                      ),
+                    ],
                   ),
                 ),
               ),

@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
@@ -7,187 +5,158 @@ import 'package:phosphoricons_flutter/phosphoricons_flutter.dart';
 
 import '../../../music_player.dart';
 
-class PlayerScreen extends StatefulWidget {
+class PlayerScreen extends StatelessWidget {
   const PlayerScreen({Key? key}) : super(key: key);
 
   @override
-  State<PlayerScreen> createState() => _PlayerScreenState();
-}
-
-class _PlayerScreenState extends State<PlayerScreen> {
-  GlobalKey<SeekBarState> seekbarKey = GlobalKey<SeekBarState>();
-
-  @override
   Widget build(BuildContext context) {
-    return BlocConsumer<PlayerBloc, MusicPlayerState>(
-      listener: (context, state) {
-        seekbarKey.currentState?.changeColor(Color(state.songs[state.currentIndex!].textColor));
-      },
+    final scheme = Theme.of(context).colorScheme;
+    final player = context.read<PlayerBloc>();
+
+    return BlocBuilder<PlayerBloc, MusicPlayerState>(
       builder: (context, state) {
+        // The queue can be emptied from the queue sheet while this is open.
+        if (state.currentIndex == null || state.songs.length <= state.currentIndex!) {
+          return const SizedBox.shrink();
+        }
         var song = state.songs[state.currentIndex!];
-        return Stack(
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              child: backgroundImage(song),
-            ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              child: backgroundBlur(song),
-            ),
-            backgroundBlur(song),
-            Column(
+        Color dim(bool active) => active ? scheme.onSurface : scheme.onSurfaceVariant.withValues(alpha: 0.6);
+
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Constant.paddingLarge),
+            child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(top: 48, left: 16),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(PhosphorIcons.caretDown),
-                      color: Color(song.textColor).withOpacity(0.7),
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        tooltip: 'Close',
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(PhosphorIcons.caretDown),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        tooltip: 'Queue',
+                        onPressed: () => showModalBottomSheet(
+                          context: context,
+                          clipBehavior: Clip.antiAlias,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(Constant.radiusMedium)),
+                          ),
+                          builder: (context) => const QueueList(),
+                        ),
+                        icon: const Icon(PhosphorIcons.queue),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                AspectRatio(
+                  aspectRatio: 1,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 250),
+                    child: SongCoverImage(
+                      key: Key(song.filePath),
+                      song: song,
+                      height: double.infinity,
+                      width: double.infinity,
+                      borderRadius: Constant.radiusMedium,
                     ),
                   ),
                 ),
                 const Spacer(),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 350),
-                  child: SongCoverImage(
-                    key: Key(song.title),
-                    song: song,
-                    height: MediaQuery.of(context).size.width * 0.65,
-                    width: MediaQuery.of(context).size.width * 0.65,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            song.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600, letterSpacing: -0.3),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            song.artist,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 15, color: scheme.onSurfaceVariant),
+                          ),
+                        ],
+                      ),
+                    ),
+                    FavoriteIconButton(
+                      key: Key(song.filePath),
+                      size: 24,
+                      isActive: song.isFavorite,
+                      onPressed: (value) => context.read<MusicCubit>().markFavorite(song),
+                    ),
+                  ],
                 ),
-                const Spacer(),
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  decoration: BoxDecoration(
-                      color: Color(song.textColor).withOpacity(0.07),
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(Constant.radiusLarge),
-                      )),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                const SizedBox(height: 16),
+                SeekBar(
+                  songDuration: player.songDuration,
+                  songPosition: player.songPosition,
+                  onSeek: player.setPosition,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 24),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ListTile(
-                        textColor: Color(song.textColor).withOpacity(0.7),
-                        title: Center(child: Text(song.title, maxLines: 1)),
-                        subtitle: Center(child: Text(song.artist, maxLines: 1)),
+                      IconButton(
+                        tooltip: 'Shuffle',
+                        onPressed: () => player.add(PlayerShuffle(!state.shuffle)),
+                        color: dim(state.shuffle),
+                        icon: const Icon(PhosphorIcons.shuffle),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            FavoriteIconButton(
-                              key: Key(song.title),
-                              color: Color(song.textColor),
-                              isActive: song.isFavorite,
-                              onPressed: (value) => context.read<MusicCubit>().markFavorite(song),
-                            ),
-                            IconButton(
-                              onPressed: () => context.read<PlayerBloc>().add(PlayerShuffle(!state.shuffle)),
-                              color: Color(song.textColor).withOpacity(state.shuffle ? 0.7 : 0.4),
-                              icon: const Icon(PhosphorIcons.shuffleFill),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                LoopMode mode = state.loopMode == LoopMode.off
-                                    ? LoopMode.all
-                                    : state.loopMode == LoopMode.all
-                                        ? LoopMode.one
-                                        : LoopMode.off;
-                                context.read<PlayerBloc>().add(PlayerLoopMode(mode));
-                              },
-                              color: Color(song.textColor).withOpacity(state.loopMode == LoopMode.off ? 0.4 : 0.7),
-                              icon: Icon(state.loopMode == LoopMode.one ? PhosphorIcons.repeatOnce : PhosphorIcons.repeat),
-                            ),
-                            IconButton(
-                              onPressed: () => showModalBottomSheet(
-                                context: context,
-                                backgroundColor: AppColor.white,
-                                clipBehavior: Clip.antiAlias,
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(Constant.radiusMedium),
-                                  ),
-                                ),
-                                builder: (context) => const QueueList(),
-                              ),
-                              color: Color(song.textColor).withOpacity(0.7),
-                              icon: const Icon(PhosphorIcons.queueFill),
-                            ),
-                          ],
-                        ),
+                      IconButton(
+                        tooltip: 'Previous',
+                        iconSize: 28,
+                        onPressed: () => player
+                          ..add(PlayerNextPrevious(false))
+                          ..add(PlayerPlayPause(true)),
+                        icon: const Icon(PhosphorIcons.skipBackFill),
                       ),
-                      seekBar(color: Color(song.textColor)),
-                      Padding(
-                        padding: const EdgeInsets.all(12).copyWith(bottom: 36),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            IconButton(
-                              onPressed: () => context.read<PlayerBloc>()
-                                ..add(PlayerNextPrevious(false))
-                                ..add(PlayerPlayPause(true)),
-                              color: Color(song.textColor).withOpacity(0.7),
-                              icon: const Icon(PhosphorIcons.skipBackFill),
-                            ),
-                            PlayPauseButton(
-                              mini: false,
-                              state: state.playing,
-                              color: Color(song.textColor).withOpacity(0.7),
-                              iconColor: Color(song.dominantColor).withOpacity(0.7),
-                              onPlayPauseTap: (value) => context.read<PlayerBloc>().add(PlayerPlayPause(value)),
-                            ),
-                            IconButton(
-                              onPressed: () => context.read<PlayerBloc>()
-                                ..add(PlayerNextPrevious(true))
-                                ..add(PlayerPlayPause(true)),
-                              color: Color(song.textColor).withOpacity(0.7),
-                              icon: const Icon(PhosphorIcons.skipForwardFill),
-                            ),
-                          ],
-                        ),
+                      PlayPauseButton(
+                        mini: false,
+                        state: state.playing,
+                        onPlayPauseTap: (value) => player.add(PlayerPlayPause(value)),
+                      ),
+                      IconButton(
+                        tooltip: 'Next',
+                        iconSize: 28,
+                        onPressed: () => player
+                          ..add(PlayerNextPrevious(true))
+                          ..add(PlayerPlayPause(true)),
+                        icon: const Icon(PhosphorIcons.skipForwardFill),
+                      ),
+                      IconButton(
+                        tooltip: 'Repeat',
+                        onPressed: () {
+                          LoopMode mode = switch (state.loopMode) {
+                            LoopMode.off => LoopMode.all,
+                            LoopMode.all => LoopMode.one,
+                            LoopMode.one => LoopMode.off,
+                          };
+                          player.add(PlayerLoopMode(mode));
+                        },
+                        color: dim(state.loopMode != LoopMode.off),
+                        icon: Icon(state.loopMode == LoopMode.one ? PhosphorIcons.repeatOnce : PhosphorIcons.repeat),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-          ],
+          ),
         );
       },
     );
   }
-
-  Widget backgroundImage(Song? song) => SongCoverImage(
-        key: Key(song?.title ?? ''),
-        song: song ?? Song.empty(),
-        borderRadius: 0,
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-      );
-
-  Widget backgroundBlur(Song song) => BackdropFilter(
-        key: Key(song.title),
-        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-        child: Container(
-          color: Color(song.dominantColor).withOpacity(0.2),
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-        ),
-      );
-
-  Widget seekBar({Color? color}) => SizedBox(
-        width: MediaQuery.of(context).size.width * 0.8,
-        child: SeekBar(
-          key: seekbarKey,
-          songDuration: context.read<PlayerBloc>().songDuration,
-          songPosition: context.read<PlayerBloc>().songPosition,
-          onSeek: context.read<PlayerBloc>().setPosition,
-          initialColor: color ?? AppColor.offWhite,
-        ),
-      );
 }

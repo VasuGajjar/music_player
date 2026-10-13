@@ -13,74 +13,48 @@ class MusicPage extends StatelessWidget {
       builder: (context, state) {
         if (state.status.isLoading) {
           return ListView.builder(
-            padding: const EdgeInsets.only(top: 16, bottom: 16),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: 8,
             itemBuilder: (context, index) => const ShimmerTile(),
           );
         } else if (state.status.isFailure) {
-          if (state.error.toLowerCase().contains('permission')) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Align(
-                  alignment: Alignment.center,
-                  child: LottieWithText(
-                    animation: Assets.accessDeniedAnimation,
-                    text: state.error,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                RoundedButton.semitransparentButton(
-                  onPress: context.read<MusicCubit>().getSongs,
-                  icon: PhosphorIcons.arrowCounterClockwise,
-                  title: 'Retry',
-                ),
-              ],
-            );
-          }
-          return Center(
-            child: LottieWithText(
-              animation: Assets.errorAnimation,
-              text: state.error,
-            ),
+          final isPermission = state.error.toLowerCase().contains('permission');
+          return EmptyState(
+            icon: isPermission ? PhosphorIcons.lock : PhosphorIcons.warning,
+            text: state.error,
+            action: isPermission
+                ? TextButton.icon(
+                    onPressed: context.read<MusicCubit>().getSongs,
+                    icon: const Icon(PhosphorIcons.arrowCounterClockwise, size: 18),
+                    label: const Text('Retry'),
+                  )
+                : null,
           );
         } else if (state.status.isSuccess) {
           if (state.songs.isEmpty) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Align(
-                  alignment: Alignment.center,
-                  child: LottieWithText(
-                    animation: Assets.noSongsAnimation,
-                    text: 'No songs found',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                RoundedButton.semitransparentButton(
-                  onPress: context.read<MusicCubit>().getSongs,
-                  icon: PhosphorIcons.arrowCounterClockwise,
-                  title: 'Refresh',
-                ),
-              ],
-            );
-          } else {
-            return RefreshIndicator(
-              onRefresh: context.read<MusicCubit>().getSongs,
-              child: ListView.builder(
-                padding: const EdgeInsets.only(top: 16, bottom: 108),
-                itemCount: state.songs.length,
-                itemBuilder: (context, index) => MusicTile(
-                  song: state.songs[index],
-                  onTap: () => context.read<PlayerBloc>()
-                    ..add(PlayerNewSong(
-                        songs: state.songs, currentIndex: index))
-                    ..add(PlayerPlayPause(true)),
-                ),
+            return EmptyState(
+              icon: PhosphorIcons.musicNote,
+              text: 'No songs found',
+              action: TextButton.icon(
+                onPressed: context.read<MusicCubit>().getSongs,
+                icon: const Icon(PhosphorIcons.arrowCounterClockwise, size: 18),
+                label: const Text('Refresh'),
               ),
             );
           }
+          return RefreshIndicator(
+            onRefresh: context.read<MusicCubit>().getSongs,
+            child: ListView.builder(
+              padding: const EdgeInsets.only(top: 8, bottom: 160),
+              itemCount: state.songs.length,
+              itemBuilder: (context, index) => MusicTile(
+                song: state.songs[index],
+                onTap: () => context.read<PlayerBloc>()
+                  ..add(PlayerNewSong(songs: state.songs, currentIndex: index))
+                  ..add(PlayerPlayPause(true)),
+              ),
+            ),
+          );
         } else {
           return const SizedBox.shrink();
         }

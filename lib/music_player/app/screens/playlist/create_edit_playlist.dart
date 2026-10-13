@@ -26,64 +26,68 @@ class _CreateEditPlaylistState extends State<CreateEditPlaylist> {
   }
 
   @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  void save() {
+    if (widget.playlist == null) {
+      context.read<PlaylistCubit>().createPlaylist(_nameController.text, selectedSongs).then((value) {
+        if (mounted) Navigator.pop(context);
+      });
+    } else if (_nameController.text.trim().isNotEmpty) {
+      context.read<PlaylistCubit>()
+        ..changeName(widget.playlist!, _nameController.text)
+        ..updatePlaylist(widget.playlist!, selectedSongs);
+      Navigator.pop(context);
+    }
+  }
+
+  void toggle(Song song) => setState(() => selectedSongs.contains(song) ? selectedSongs.remove(song) : selectedSongs.add(song));
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.playlist == null ? 'Add Playlist' : 'Edit Playlist'),
+        title: Text(widget.playlist == null ? 'New playlist' : 'Edit playlist'),
+        titleSpacing: 0,
         actions: [
-          IconButton(
-            onPressed: () {
-              if (widget.playlist == null) {
-                context
-                    .read<PlaylistCubit>()
-                    .createPlaylist(
-                      _nameController.text,
-                      selectedSongs,
-                    )
-                    .then((value) => Navigator.pop(context));
-              } else {
-                if (_nameController.text.trim().isNotEmpty) {
-                  context.read<PlaylistCubit>()
-                    ..changeName(widget.playlist!, _nameController.text)
-                    ..updatePlaylist(widget.playlist!, selectedSongs);
-                  Navigator.pop(context);
-                }
-              }
-            },
-            icon: const Icon(PhosphorIcons.floppyDisk),
-          ),
+          TextButton(onPressed: save, child: const Text('Save')),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
             child: TextField(
               controller: _nameController,
-              style: TextStyles.h2Bold,
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Enter Name..',
-              ),
+              autofocus: widget.playlist == null,
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w600, letterSpacing: -0.4),
+              decoration: const InputDecoration(hintText: 'Playlist name'),
             ),
           ),
+          const Divider(height: 1),
           Expanded(
             child: BlocBuilder<MusicCubit, MusicState>(
               builder: (context, state) {
                 if (state.songs.isEmpty) {
-                  return const Center(
-                    child: LottieWithText(
-                      animation: Assets.noSongsAnimation,
-                      text: 'No Songs Found',
-                    ),
-                  );
+                  return const EmptyState(icon: PhosphorIcons.musicNote, text: 'No songs found');
                 }
 
                 return ListView.builder(
                   itemCount: state.songs.length,
-                  padding: const EdgeInsets.only(bottom: Constant.paddingMedium),
-                  itemBuilder: (context, index) => musicTile(state.songs[index]),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemBuilder: (context, index) {
+                    final song = state.songs[index];
+                    return MusicTile(
+                      song: song,
+                      onTap: () => toggle(song),
+                      trailing: Checkbox(value: selectedSongs.contains(song), onChanged: (_) => toggle(song)),
+                    );
+                  },
                 );
               },
             ),
@@ -92,17 +96,4 @@ class _CreateEditPlaylistState extends State<CreateEditPlaylist> {
       ),
     );
   }
-
-  musicTile(Song song) => ListTile(
-        onTap: () => setState(() => selectedSongs.contains(song) ? selectedSongs.remove(song) : selectedSongs.add(song)),
-        leading: SongCoverImage(song: song),
-        title: Text(song.title, maxLines: 1),
-        subtitle: Text(song.artist, maxLines: 1),
-        trailing: Checkbox(
-          value: selectedSongs.contains(song),
-          onChanged: (value) => setState(() => value == true ? selectedSongs.add(song) : selectedSongs.remove(song)),
-          shape: const CircleBorder(),
-          activeColor: AppColor.darkPurple,
-        ),
-      );
 }

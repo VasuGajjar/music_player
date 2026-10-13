@@ -18,95 +18,25 @@ class PlaylistCoverImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final songs = playlist.songs;
+
+    Widget cover(Song song) => Expanded(child: SongCoverImage(song: song, borderRadius: 0, height: double.infinity, width: double.infinity));
+
     return Container(
       height: height,
       width: width,
       clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(color: AppColor.purple, borderRadius: BorderRadius.circular(borderRadius)),
-      child: Builder(
-        builder: (context) {
-          if (playlist.songs.length >= 4) {
-            return Column(
-              children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SongCoverImage(
-                          song: playlist.songs[0],
-                          borderRadius: 0,
-                          height: double.infinity,
-                        ),
-                      ),
-                      Expanded(
-                        child: SongCoverImage(
-                          song: playlist.songs[1],
-                          borderRadius: 0,
-                          height: double.infinity,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SongCoverImage(
-                          song: playlist.songs[2],
-                          borderRadius: 0,
-                          height: double.infinity,
-                        ),
-                      ),
-                      Expanded(
-                        child: SongCoverImage(
-                          song: playlist.songs[3],
-                          borderRadius: 0,
-                          height: double.infinity,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          } else if (playlist.songs.length >= 2) {
-            return Row(
-              children: [
-                Expanded(
-                  child: SongCoverImage(
-                    song: playlist.songs[0],
-                    borderRadius: 0,
-                    height: double.infinity,
-                  ),
-                ),
-                Expanded(
-                  child: SongCoverImage(
-                    song: playlist.songs[1],
-                    borderRadius: 0,
-                    height: double.infinity,
-                  ),
-                ),
-              ],
-            );
-          } else if (playlist.songs.length == 1) {
-            return SongCoverImage(
-              song: playlist.songs[0],
-              height: height,
-              width: width,
-              borderRadius: 0,
-            );
-          } else {
-            return Center(
-              child: Icon(
-                PhosphorIcons.musicNotes,
-                color: AppColor.offWhite,
-                size: height / 2,
-              ),
-            );
-          }
-        },
-      ),
+      decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(borderRadius)),
+      child: switch (songs.length) {
+        0 => Center(child: Icon(PhosphorIcons.musicNotes, color: scheme.onSurfaceVariant, size: 32)),
+        1 => Row(children: [cover(songs[0])]),
+        2 || 3 => Row(children: [cover(songs[0]), cover(songs[1])]),
+        _ => Column(children: [
+            Expanded(child: Row(children: [cover(songs[0]), cover(songs[1])])),
+            Expanded(child: Row(children: [cover(songs[2]), cover(songs[3])])),
+          ]),
+      },
     );
   }
 }

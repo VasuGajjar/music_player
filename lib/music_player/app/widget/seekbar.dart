@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 class SeekBar extends StatefulWidget {
   final Stream<Duration?> songDuration;
   final Stream<Duration> songPosition;
-  final Color initialColor;
   final void Function(int position) onSeek;
 
   const SeekBar({
@@ -13,7 +12,6 @@ class SeekBar extends StatefulWidget {
     required this.songDuration,
     required this.songPosition,
     required this.onSeek,
-    required this.initialColor,
   }) : super(key: key);
 
   @override
@@ -25,48 +23,45 @@ class SeekBarState extends State<SeekBar> {
   Duration songPosition = Duration.zero;
   bool dragging = false;
   double seekBarValue = 0, maxValue = 0;
-  late Color color;
   late StreamSubscription durationSubscription, positionSubscription;
 
   @override
   void initState() {
     durationSubscription = widget.songDuration.listen((duration) async => setState(() => songDuration = duration));
     positionSubscription = widget.songPosition.listen((position) async => setState(() => songPosition = position));
-    color = widget.initialColor;
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    seekBarValue = dragging ? seekBarValue : songPosition.inSeconds.toDouble();
+    final timeStyle = TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant);
     maxValue = songDuration?.inSeconds.toDouble() ?? 1;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    seekBarValue = (dragging ? seekBarValue : songPosition.inSeconds.toDouble()).clamp(0, maxValue);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          strFromDuration(songPosition),
-          style: TextStyle(color: color.withOpacity(0.7)),
+        Slider(
+          onChanged: (value) {
+            dragging = true;
+            setState(() => seekBarValue = value);
+          },
+          onChangeEnd: (value) {
+            dragging = false;
+            widget.onSeek(value.toInt());
+          },
+          max: maxValue,
+          value: seekBarValue,
         ),
-        Expanded(
-          child: Slider(
-            onChanged: (value) {
-              dragging = true;
-              setState(() => seekBarValue = value);
-            },
-            onChangeEnd: (value) {
-              dragging = false;
-              widget.onSeek(value.toInt());
-            },
-            max: maxValue,
-            value: seekBarValue,
-            activeColor: color.withOpacity(0.5),
-            inactiveColor: color.withOpacity(0.1),
-            thumbColor: color.withOpacity(1),
+        Padding(
+          // Matches the slider's overlay radius so the labels line up with the track ends.
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(strFromDuration(songPosition), style: timeStyle),
+              Text(strFromDuration(songDuration ?? Duration.zero), style: timeStyle),
+            ],
           ),
-        ),
-        Text(
-          strFromDuration(songDuration ?? Duration.zero),
-          style: TextStyle(color: color.withOpacity(0.7)),
         ),
       ],
     );
@@ -76,8 +71,6 @@ class SeekBarState extends State<SeekBar> {
         duration.toString().indexOf(':') + 1,
         duration.toString().indexOf('.'),
       );
-
-  void changeColor(Color color) => setState(() => this.color = color);
 
   @override
   void dispose() {

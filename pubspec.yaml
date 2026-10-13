@@ -14,7 +14,6 @@ dependencies:
   # User Interface
   cupertino_icons:
   phosphoricons_flutter:
-  lottie:
   shimmer:
   palette_generator:
 
@@ -56,7 +55,6 @@ flutter:
   assets:
     - assets/
     - assets/images/
-    - assets/anim/
 
   # fonts:
   #   - family: Schyler

@@ -63,29 +63,19 @@ class MusicRepository {
         }
       }
     }
-  }
 
-  Future<File?> getCoverImage(Song song) async {
-    if (song.albumArtUrl == null) return null;
-
-    if (song == Song.empty()) return null;
-
-    File coverImage = File(song.albumArtUrl!);
-    if (await coverImage.exists()) {
-      return coverImage;
-    } else {
-      var metadata = await _readMetadata(song.filePath);
-      String? coverImagePath =
-          await StorageHelper.getAlbumCover(song.title, _albumArt(metadata));
-      if (coverImagePath == null) {
-        song.albumArtUrl == null;
+    // Covers are cached in the temp dir, which Android may clear. Re-extract missing
+    // ones here once, instead of checking on every cover widget build.
+    for (var song in musicBox.values.toList()) {
+      if (song.albumArtUrl != null && !await File(song.albumArtUrl!).exists()) {
+        var metadata = await _readMetadata(song.filePath);
+        song.albumArtUrl =
+            await StorageHelper.getAlbumCover(song.title, _albumArt(metadata));
         await song.save();
-        return null;
-      } else {
-        return File(coverImagePath);
       }
     }
   }
+
 
   // Parsing is synchronous file I/O, so keep it off the UI isolate. Static so the
   // closure doesn't capture `this` (Hive boxes can't cross isolates).
