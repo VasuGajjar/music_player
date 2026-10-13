@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:just_audio_background/just_audio_background.dart';
+import 'package:audio_service/audio_service.dart' show MediaItem;
 
 import '../../../music_player.dart';
 
@@ -14,10 +14,11 @@ part 'player_event.dart';
 part 'player_state.dart';
 
 class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
-  final AudioPlayer _audioPlayer = AudioPlayer();
-  late StreamSubscription _songIndexStream, _playPauseStream;
+  /// Owned by [AudioPlayerHandler], which mirrors it to the system media session.
+  final AudioPlayer _audioPlayer;
+  late StreamSubscription _songIndexStream, _playPauseStream, _shuffleStream, _loopStream;
 
-  PlayerBloc() : super(MusicPlayerState.initial()) {
+  PlayerBloc(this._audioPlayer) : super(MusicPlayerState.initial()) {
     _songIndexStream = _audioPlayer.currentIndexStream.listen((index) {
       //TODO: Update Widget From Here
       emit(state.copyWith(currentIndex: index));
@@ -27,6 +28,10 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
       //TODO: Update Widget From Here
       emit(state.copyWith(playing: playing));
     });
+
+    // Shuffle/repeat can also be changed from the media notification.
+    _shuffleStream = _audioPlayer.shuffleModeEnabledStream.listen((shuffle) => emit(state.copyWith(shuffle: shuffle)));
+    _loopStream = _audioPlayer.loopModeStream.listen((loopMode) => emit(state.copyWith(loopMode: loopMode)));
 
     on<PlayerPlayPause>((event, emit) {
       if (event.play) {
@@ -103,7 +108,8 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
   Future<void> close() {
     _songIndexStream.cancel();
     _playPauseStream.cancel();
-    _audioPlayer.dispose();
+    _shuffleStream.cancel();
+    _loopStream.cancel();
     return super.close();
   }
 

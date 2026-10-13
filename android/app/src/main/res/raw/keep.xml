@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Referenced by name (audio_service notification, storage_helper Live Update), so resource shrinking can't see them. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_music,@drawable/ic_previous,@drawable/ic_play,@drawable/ic_pause,@drawable/ic_next,@drawable/ic_favorite,@drawable/ic_favorite_border,@drawable/ic_shuffle_on,@drawable/ic_shuffle_off" />

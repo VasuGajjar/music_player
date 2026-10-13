@@ -7,17 +7,6 @@ import '../../music_player.dart';
 class PlayerTile extends StatelessWidget {
   const PlayerTile({Key? key}) : super(key: key);
 
-  static void openPlayer(BuildContext context) => showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        clipBehavior: Clip.antiAlias,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(Constant.radiusMedium)),
-        ),
-        builder: (context) => const PlayerScreen(),
-      );
-
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
@@ -42,7 +31,7 @@ class PlayerTile extends StatelessWidget {
                 side: BorderSide(color: scheme.outlineVariant),
               ),
               child: InkWell(
-                onTap: () => openPlayer(context),
+                onTap: () => PlayerScreen.open(context),
                 child: Padding(
                   padding: const EdgeInsets.all(8),
                   child: Row(

@@ -100,7 +100,11 @@ class MusicRepository {
   }
 
   Future<void> markFavorite(Song song) async {
-    song.isFavorite = !song.isFavorite;
-    await song.save();
+    // Songs restored with the player queue are detached copies; update the stored one.
+    final stored = musicBox.get(song.filePath);
+    if (stored == null) return;
+    stored.isFavorite = !stored.isFavorite;
+    if (!identical(stored, song)) song.isFavorite = stored.isFavorite;
+    await stored.save();
   }
 }

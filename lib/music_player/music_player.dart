@@ -10,7 +10,9 @@ export './theme/theme.dart';
 export './util/util.dart';
 
 class MusicPlayerApp extends StatelessWidget {
-  const MusicPlayerApp({Key? key}) : super(key: key);
+  final AudioPlayerHandler audioHandler;
+
+  const MusicPlayerApp({Key? key, required this.audioHandler}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +20,7 @@ class MusicPlayerApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => MusicCubit()..getSongs()),
         BlocProvider(create: (context) => PlaylistCubit()),
-        BlocProvider(create: (context) => PlayerBloc()),
+        BlocProvider(create: (context) => PlayerBloc(audioHandler.player)),
         BlocProvider(create: (context) => ThemeCubit()),
       ],
       child: BlocBuilder<ThemeCubit, ThemeMode>(

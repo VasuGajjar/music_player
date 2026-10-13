@@ -20,9 +20,12 @@ class StorageHelperPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     object Constant {
         const val permissionStorageRequestCode = 101
         const val permissionStorageDeniedErrorCode = "storagePermissionDenied"
+        const val permissionNotificationRequestCode = 102
     }
 
     private lateinit var channel: MethodChannel
+    private lateinit var liveUpdateChannel: MethodChannel
+    private var askedNotificationPermission = false
     private lateinit var activity: Activity
     private lateinit var context: Context
     private var result: MethodChannel.Result? = null
@@ -31,6 +34,35 @@ class StorageHelperPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "storage_helper")
         channel.setMethodCallHandler(this)
         context = flutterPluginBinding.applicationContext
+
+        // Registered on the audio engine itself, so it keeps working after the activity closes.
+        liveUpdateChannel = MethodChannel(flutterPluginBinding.binaryMessenger, "com.vasugajjar.music_player/live_update")
+        liveUpdateChannel.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "update" -> {
+                    requestNotificationPermission()
+                    LiveUpdate.post(context, call.arguments as Map<*, *>)
+                    result.success(null)
+                }
+                "cancel" -> {
+                    LiveUpdate.cancel(context)
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    // Media notifications are exempt from POST_NOTIFICATIONS; the Live Update is not.
+    private fun requestNotificationPermission() {
+        if (askedNotificationPermission || !::activity.isInitialized || activity.isDestroyed) return
+        if (!LiveUpdate.isSupported(context)) return
+        askedNotificationPermission = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            activity.requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), Constant.permissionNotificationRequestCode)
+        }
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: io.flutter.plugin.common.MethodChannel.Result) {
@@ -50,6 +82,7 @@ class StorageHelperPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+        liveUpdateChannel.setMethodCallHandler(null)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {

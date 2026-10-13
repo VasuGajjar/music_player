@@ -30,7 +30,7 @@ dependencies:
   # Music
   audio_metadata_reader: ^1.8.0
   just_audio:
-  just_audio_background:
+  audio_service:
   storage_helper:
     path: packages/storage_helper
 
