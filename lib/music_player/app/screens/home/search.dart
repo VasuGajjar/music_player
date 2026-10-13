@@ -44,17 +44,31 @@ class Search extends SearchDelegate<Song?> {
         .toList();
 
     if (songs.isEmpty) {
-      return const EmptyState(icon: PhosphorIcons.musicNote, text: 'No matches');
+      return EmptyState(
+        icon: PhosphorIcons.musicNote,
+        text: 'No matches in your library',
+        action: TextButton.icon(
+          onPressed: () => OnlineScreen.open(context, query),
+          icon: const Icon(PhosphorIcons.youtubeLogo, size: 18),
+          label: const Text('Search YouTube'),
+        ),
+      );
     }
 
     return ListView.builder(
-      itemCount: songs.length,
+      itemCount: songs.length + 1,
       padding: const EdgeInsets.symmetric(vertical: 8),
-      itemBuilder: (context, index) => MusicTile(
-        song: songs[index],
-        onTap: () => close(context, songs[index]),
-        trailing: const SizedBox.shrink(),
-      ),
+      itemBuilder: (context, index) => index == songs.length
+          ? ListTile(
+              onTap: () => OnlineScreen.open(context, query),
+              leading: const SizedBox.square(dimension: 48, child: Icon(PhosphorIcons.youtubeLogo)),
+              title: Text('Search "${query.trim()}" on YouTube', maxLines: 1, overflow: TextOverflow.ellipsis),
+            )
+          : MusicTile(
+              song: songs[index],
+              onTap: () => close(context, songs[index]),
+              trailing: const SizedBox.shrink(),
+            ),
     );
   }
 }

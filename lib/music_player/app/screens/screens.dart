@@ -3,6 +3,7 @@ export './favorite/favorite.dart';
 export './home/home.dart';
 export './home/search.dart';
 export './music/music.dart';
+export './online/online.dart';
 export './playlist/playlist.dart';
 export './playlist/create_edit_playlist.dart';
 export './playlist/playlist_song.dart';

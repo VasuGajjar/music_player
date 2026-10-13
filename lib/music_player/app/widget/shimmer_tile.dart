@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ShimmerTile extends StatelessWidget {
-  const ShimmerTile({Key? key}) : super(key: key);
+  final Size leading;
+
+  const ShimmerTile({Key? key, this.leading = const Size(48, 48)}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +19,7 @@ class ShimmerTile extends StatelessWidget {
       baseColor: scheme.surfaceContainerHighest,
       highlightColor: scheme.surfaceContainerHigh,
       child: ListTile(
-        leading: bar(48, 48),
+        leading: bar(leading.height, leading.width),
         title: Align(alignment: Alignment.centerLeft, child: bar(14, 160)),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 6),

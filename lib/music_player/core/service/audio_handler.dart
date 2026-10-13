@@ -14,7 +14,8 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
   static const _favorite = 'favorite', _shuffle = 'shuffle';
   static const _liveUpdate = MethodChannel('com.vasugajjar.music_player/live_update');
 
-  final player = AudioPlayer();
+  // Send stream headers through ExoPlayer directly instead of just_audio's local proxy.
+  final player = AudioPlayer(useProxyForRequestHeaders: false);
   final _songs = Hive.box<Song>(Constant.musicBox);
   String? _liveUpdateKey;
 
@@ -104,7 +105,7 @@ class AudioPlayerHandler extends BaseAudioHandler with SeekHandler {
     _liveUpdate.invokeMethod('update', {
       'title': item.title,
       'artist': item.artist ?? '',
-      'art': item.artUri?.toFilePath(),
+      'art': item.artUri?.scheme == 'file' ? item.artUri!.toFilePath() : null,
       'playing': player.playing,
       'position': player.position.inMilliseconds,
       'duration': player.duration?.inMilliseconds,

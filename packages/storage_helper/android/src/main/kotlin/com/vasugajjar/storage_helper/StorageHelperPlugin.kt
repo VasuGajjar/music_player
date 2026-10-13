@@ -25,6 +25,7 @@ class StorageHelperPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
     private lateinit var channel: MethodChannel
     private lateinit var liveUpdateChannel: MethodChannel
+    private lateinit var youtube: YouTube
     private var askedNotificationPermission = false
     private lateinit var activity: Activity
     private lateinit var context: Context
@@ -51,6 +52,8 @@ class StorageHelperPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                 else -> result.notImplemented()
             }
         }
+
+        youtube = YouTube(context, flutterPluginBinding.binaryMessenger)
     }
 
     // Media notifications are exempt from POST_NOTIFICATIONS; the Live Update is not.
@@ -83,6 +86,7 @@ class StorageHelperPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
         liveUpdateChannel.setMethodCallHandler(null)
+        youtube.dispose()
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {

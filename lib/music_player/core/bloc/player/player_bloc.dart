@@ -16,7 +16,8 @@ part 'player_state.dart';
 class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
   /// Owned by [AudioPlayerHandler], which mirrors it to the system media session.
   final AudioPlayer _audioPlayer;
-  late StreamSubscription _songIndexStream, _playPauseStream, _shuffleStream, _loopStream;
+  late StreamSubscription _songIndexStream, _playPauseStream, _shuffleStream, _loopStream, _errorStream;
+  DateTime? _lastRecovery;
 
   PlayerBloc(this._audioPlayer) : super(MusicPlayerState.initial()) {
     _songIndexStream = _audioPlayer.currentIndexStream.listen((index) {
@@ -32,6 +33,7 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
     // Shuffle/repeat can also be changed from the media notification.
     _shuffleStream = _audioPlayer.shuffleModeEnabledStream.listen((shuffle) => emit(state.copyWith(shuffle: shuffle)));
     _loopStream = _audioPlayer.loopModeStream.listen((loopMode) => emit(state.copyWith(loopMode: loopMode)));
+    _errorStream = _audioPlayer.errorStream.listen((_) => _recoverStream());
 
     on<PlayerPlayPause>((event, emit) {
       if (event.play) {
@@ -87,6 +89,28 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
     });
   }
 
+  /// YouTube revokes stream urls mid-playback (NewPipe #13824). Like NewPipe, re-extract and
+  /// resume where it stopped. Throttled so a video that never plays can't loop forever.
+  Future<void> _recoverStream() async {
+    final index = _audioPlayer.currentIndex;
+    if (index == null || index >= state.songs.length || !state.songs[index].isRemote) return;
+    final now = DateTime.now();
+    if (_lastRecovery != null && now.difference(_lastRecovery!) < const Duration(seconds: 15)) return;
+    _lastRecovery = now;
+
+    final position = _audioPlayer.position;
+    final fresh = await YouTube.refresh(state.songs[index]);
+    if (fresh == null) return;
+    final songs = List<Song>.from(state.songs)..[index] = fresh;
+    await _audioPlayer.setAudioSource(
+      ConcatenatingAudioSource(children: songs.map(audioSourceFromSong).toList()),
+      initialIndex: index,
+      initialPosition: position,
+    );
+    _audioPlayer.play();
+    emit(state.copyWith(songs: songs));
+  }
+
   Stream<Duration?> get songDuration => _audioPlayer.durationStream;
 
   Stream<Duration> get songPosition => _audioPlayer.positionStream;
@@ -94,13 +118,18 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
   void setPosition(int position) => _audioPlayer.seek(Duration(seconds: position));
 
   AudioSource audioSourceFromSong(Song song) => AudioSource.uri(
-        Uri.file(song.filePath),
+        song.isRemote ? Uri.parse(song.filePath) : Uri.file(song.filePath),
+        headers: song.isRemote ? YouTube.headersFor(song.filePath) : null,
         tag: MediaItem(
           id: song.filePath,
           title: song.title,
           album: song.album,
           artist: song.artist,
-          artUri: song.albumArtUrl != null ? Uri.file(song.albumArtUrl!) : null,
+          artUri: switch (song.albumArtUrl) {
+            null => null,
+            final art when art.startsWith('http') => Uri.parse(art),
+            final art => Uri.file(art),
+          },
         ),
       );
 
@@ -110,6 +139,7 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
     _playPauseStream.cancel();
     _shuffleStream.cancel();
     _loopStream.cancel();
+    _errorStream.cancel();
     return super.close();
   }
 
@@ -136,7 +166,8 @@ class PlayerBloc extends HydratedBloc<PlayerEvent, MusicPlayerState> {
   }
 
   @override
-  Map<String, dynamic>? toJson(MusicPlayerState state) => state.toJson();
+  // Stream urls expire within hours, so a streamed queue isn't worth restoring; keep the last local one.
+  Map<String, dynamic>? toJson(MusicPlayerState state) => state.songs.any((song) => song.isRemote) ? null : state.toJson();
 }
 
 extension LoopModeX on LoopMode {

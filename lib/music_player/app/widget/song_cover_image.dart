@@ -36,17 +36,16 @@ class SongCoverImage extends StatelessWidget {
       decoration: BoxDecoration(color: scheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(borderRadius)),
       child: song.albumArtUrl == null
           ? placeholder
-          : LayoutBuilder(
-              builder: (context, box) => Image.file(
-                File(song.albumArtUrl!),
-                fit: BoxFit.cover,
-                // Decode at the size shown, not the full embedded art: full-size decodes in
-                // every list tile overflow the image cache and make scrolling stutter.
-                cacheWidth: box.biggest.isFinite ? (box.biggest.longestSide * MediaQuery.devicePixelRatioOf(context)).round() : null,
-                gaplessPlayback: true,
-                errorBuilder: (context, error, stackTrace) => placeholder,
-              ),
-            ),
+          : LayoutBuilder(builder: (context, box) {
+              // Decode at the size shown, not the full embedded art: full-size decodes in
+              // every list tile overflow the image cache and make scrolling stutter.
+              final cacheWidth = box.biggest.isFinite ? (box.biggest.longestSide * MediaQuery.devicePixelRatioOf(context)).round() : null;
+              final art = song.albumArtUrl!;
+              // Streamed songs carry their YouTube thumbnail url.
+              return art.startsWith('http')
+                  ? Image.network(art, fit: BoxFit.cover, cacheWidth: cacheWidth, gaplessPlayback: true, errorBuilder: (context, error, stackTrace) => placeholder)
+                  : Image.file(File(art), fit: BoxFit.cover, cacheWidth: cacheWidth, gaplessPlayback: true, errorBuilder: (context, error, stackTrace) => placeholder);
+            }),
     );
   }
 }

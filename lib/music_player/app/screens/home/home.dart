@@ -51,6 +51,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             icon: const Icon(PhosphorIcons.magnifyingGlass),
           ),
           IconButton(
+            tooltip: 'Search YouTube',
+            onPressed: () => OnlineScreen.open(context),
+            icon: const Icon(PhosphorIcons.youtubeLogo),
+          ),
+          IconButton(
             tooltip: isDark ? 'Light mode' : 'Dark mode',
             onPressed: () => context.read<ThemeCubit>().toggle(Theme.of(context).brightness),
             icon: Icon(isDark ? PhosphorIcons.sun : PhosphorIcons.moon),

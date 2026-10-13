@@ -34,30 +34,13 @@ class MusicRepository {
         try {
           var metadata = await _readMetadata(songPath);
           String trackName = metadata?.title ?? path.basename(songPath);
-          String? coverImagePath =
-              await StorageHelper.getAlbumCover(trackName, _albumArt(metadata));
-          Color dominantColor = AppColor.darkBlue;
-          Color textColor = AppColor.offWhite;
-          if (coverImagePath != null) {
-            PaletteGenerator paletteGenerator =
-                await PaletteGenerator.fromImageProvider(
-                    FileImage(File(coverImagePath)));
-            dominantColor =
-                paletteGenerator.dominantColor?.color ?? dominantColor;
-            textColor =
-                paletteGenerator.dominantColor?.titleTextColor ?? textColor;
-          }
-          var song = Song(
+          await addSong(
+            songPath,
             title: trackName,
             artist: metadata?.artist ?? 'NA',
             album: metadata?.album ?? 'NA',
-            albumArtUrl: coverImagePath,
-            filePath: songPath,
-            isFavorite: false,
-            dominantColor: dominantColor.value,
-            textColor: textColor.value,
+            cover: await StorageHelper.getAlbumCover(trackName, _albumArt(metadata)),
           );
-          musicBox.put(songPath, song);
         } catch (e) {
           Logger.error('MusicRepo.fetchSongsFromStorage().error: ', e);
         }
@@ -76,6 +59,30 @@ class MusicRepository {
     }
   }
 
+
+  /// Stores a song with known metadata; also used for downloads, whose tags we already know.
+  Future<void> addSong(String songPath, {required String title, required String artist, String album = 'NA', String? cover}) async {
+    Color dominantColor = AppColor.darkBlue;
+    Color textColor = AppColor.offWhite;
+    if (cover != null) {
+      PaletteGenerator paletteGenerator = await PaletteGenerator.fromImageProvider(FileImage(File(cover)));
+      dominantColor = paletteGenerator.dominantColor?.color ?? dominantColor;
+      textColor = paletteGenerator.dominantColor?.titleTextColor ?? textColor;
+    }
+    await musicBox.put(
+      songPath,
+      Song(
+        title: title,
+        artist: artist,
+        album: album,
+        albumArtUrl: cover,
+        filePath: songPath,
+        isFavorite: false,
+        dominantColor: dominantColor.value,
+        textColor: textColor.value,
+      ),
+    );
+  }
 
   // Parsing is synchronous file I/O, so keep it off the UI isolate. Static so the
   // closure doesn't capture `this` (Hive boxes can't cross isolates).

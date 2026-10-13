@@ -101,12 +101,14 @@ class PlayerScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    FavoriteIconButton(
-                      key: Key(song.filePath),
-                      size: 24,
-                      isActive: song.isFavorite,
-                      onPressed: (value) => context.read<MusicCubit>().markFavorite(song),
-                    ),
+                    // Favorites live in the library; a stream isn't in it until downloaded.
+                    if (!song.isRemote)
+                      FavoriteIconButton(
+                        key: Key(song.filePath),
+                        size: 24,
+                        isActive: song.isFavorite,
+                        onPressed: (value) => context.read<MusicCubit>().markFavorite(song),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 16),

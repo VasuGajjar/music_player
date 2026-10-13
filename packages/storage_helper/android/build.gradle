@@ -18,6 +18,8 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        // NewPipeExtractor is only published on JitPack.
+        maven { url 'https://jitpack.io' }
     }
 }
 
@@ -31,6 +33,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -43,5 +46,14 @@ android {
 
     defaultConfig {
         minSdk 24
+        consumerProguardFiles 'proguard-rules.pro'
     }
+}
+
+dependencies {
+    // Same commit NewPipe's dev branch pins (gradle/libs.versions.toml): v0.26.5 still relies on
+    // ANDROID/IOS clients that need poTokens; dev streams through VISIONOS instead.
+    implementation 'com.github.TeamNewPipe:NewPipeExtractor:3313901108f0f52df68c28a04d88c2891f9c400b'
+    // Required by the extractor below minSdk 33.
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs_nio:2.1.5'
 }
